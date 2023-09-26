@@ -18,7 +18,7 @@
     <img alt="Lint and test" src="https://github.com/cms-cat/order/actions/workflows/lint_and_test.yml/badge.svg" />
   </a>
   <a href="https://codecov.io/gh/cms-cat/order">
-    <img alt="Code coverge" src="https://codecov.io/gh/cms-cat/order/branch/master/graph/badge.svg?token=SNFRGYOITJ" />
+    <img alt="Code coverge" src="https://codecov.io/gh/cms-cat/order/branch/master/graph/badge.svg?token=JF7BVTNB2Y" />
   </a>
   <a href="https://pypi.python.org/pypi/order">
     <img alt="Package version" src="https://img.shields.io/pypi/v/order.svg?style=flat" />
