@@ -1,40 +1,56 @@
-<center>
+<!-- marker-before-logo -->
+
+<p align="center">
   <a href="https://github.com/cms-cat/order">
     <img src="https://media.githubusercontent.com/media/cms-cat/order/master/assets/logo240.png" />
   </a>
-</center>
-
+</p>
 
 <!-- marker-after-logo -->
 
+<!-- marker-before-badges -->
 
-[![Documentation status](https://readthedocs.org/projects/cms-order/badge/?version=latest)](http://cms-order.readthedocs.io/en/latest)
-[![Lint and test](https://github.com/cms-cat/order/actions/workflows/lint_and_test.yml/badge.svg)](https://github.com/cms-cat/order/actions/workflows/lint_and_test.yml)
-[![Code coverge](https://codecov.io/gh/cms-cat/order/branch/master/graph/badge.svg?token=SNFRGYOITJ)](https://codecov.io/gh/cms-cat/order)
-[![Package version](https://img.shields.io/pypi/v/order.svg?style=flat)](https://pypi.python.org/pypi/order)
-[![License](https://img.shields.io/github/license/cms-cat/order.svg)](https://github.com/cms-cat/order/blob/master/LICENSE)
-[![PyPI downloads](https://img.shields.io/pypi/dm/order.svg)](https://pypi.python.org/pypi/order)
-[![Open in colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/cms-cat/order/blob/master/examples/intro.ipynb)
+<p align="center">
+  <a href="http://cms-order.readthedocs.io/en/latest">
+    <img alt="Documentation status" src="https://readthedocs.org/projects/cms-order/badge/?version=latest" />
+  </a>
+  <a href="https://github.com/cms-cat/order/actions/workflows/lint_and_test.yml">
+    <img alt="Lint and test" src="https://github.com/cms-cat/order/actions/workflows/lint_and_test.yml/badge.svg" />
+  </a>
+  <a href="https://codecov.io/gh/cms-cat/order">
+    <img alt="Code coverge" src="https://codecov.io/gh/cms-cat/order/branch/master/graph/badge.svg?token=SNFRGYOITJ" />
+  </a>
+  <a href="https://pypi.python.org/pypi/order">
+    <img alt="Package version" src="https://img.shields.io/pypi/v/order.svg?style=flat" />
+  </a>
+  <a href="https://github.com/cms-cat/order/blob/master/LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/cms-cat/order.svg" />
+  </a>
+  <a href="https://colab.research.google.com/github/cms-cat/order/blob/master/examples/intro.ipynb">
+    <img alt="Open in colab" src="https://colab.research.google.com/assets/colab-badge.svg" />
+  </a>
+</p>
+
+<!-- marker-after-badges -->
+
+<!-- marker-before-header -->
 
 Pythonic class collection to structure and access CMS metadata.
 
 TODO: introduction
 
-
 <!-- marker-after-header -->
 
+<!-- marker-before-body -->
 
-## Getting started
+# Getting started
 
 TODO: Add intro notebook.
 
 You can find the full [API documentation on readthedocs](http://python-order.readthedocs.io).
 
 
-<!-- marker-after-getting-started -->
-
-
-## Installation and dependencies
+# Installation and dependencies
 
 Install *order* via [pip](https://pypi.python.org/pypi/order):
 
@@ -43,7 +59,7 @@ pip install order
 ```
 
 
-## Contributing and testing
+# Contributing and testing
 
 If you like to contribute, feel free to open a pull request 🎉.
 Just make sure to add new test cases and run them via:
@@ -74,7 +90,9 @@ flake8 order tests setup.py
 TODO: maybe move to black
 
 
-## Development
+# Development
 
 - Original source hosted at [GitHub](https://github.com/cms-cat/order)
 - Report issues, questions, feature requests on [GitHub Issues](https://github.com/cms-cat/order/issues)
+
+<!-- marker-after-body -->
