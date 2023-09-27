@@ -1,0 +1,62 @@
+[build-system]
+
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+
+name = "order"
+authors = [
+    {name = "Marcel Rieger", email = "marcel.rieger@cern.ch"},
+    {name = "Davide Valsecchi", email = "davide.valsecchi@cern.ch"},
+]
+description = "Pythonic class collection to structure and access CMS metadata."
+keywords = [
+    "physics",
+    "analysis",
+    "experiment",
+    "order",
+    "structure",
+    "lhc",
+    "hep",
+    "cms",
+    "metadata",
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Information Technology",
+]
+license = {file = "LICENSE"}
+requires-python = ">=3.7"
+dynamic = ["version", "readme", "dependencies", "optional-dependencies"]
+
+
+[tool.setuptools.dynamic]
+
+version = {attr = "order.__meta__.__version__"}
+readme = {file = ["README.md"], content-type = "text/markdown"}
+dependencies = {file = ["requirements.txt"]}
+optional-dependencies = {dev = {file = ["requirements_dev.txt"]}}
+
+
+[tool.setuptools]
+
+include-package-data = false
+
+
+[tool.setuptools.packages.find]
+
+include = ["order*"]
+exclude = ["tests/*"]

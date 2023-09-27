@@ -1,3 +1,3 @@
 graft order
-include setup.py requirements.txt README.md LICENSE .flake8
-global-exclude *.py[cod] __pycache__
+include LICENSE README.md requirements.txt requirements_dev.txt .flake8
+global-exclude *.py[cod] __pycache__ tests/*

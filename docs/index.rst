@@ -14,3 +14,9 @@
 .. include:: ../README.md
    :parser: myst_parser.sphinx_
    :start-after: <!-- marker-before-body -->
+   :end-before: <!-- marker-after-installation -->
+
+.. include:: ../README.md
+   :parser: myst_parser.sphinx_
+   :start-after: <!-- marker-before-development -->
+   :end-before: <!-- marker-after-body -->

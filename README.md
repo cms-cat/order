@@ -43,12 +43,17 @@ TODO: introduction
 
 <!-- marker-before-body -->
 
+<!-- marker-before-getting-started -->
+
 # Getting started
 
 TODO: Add intro notebook.
 
 You can find the full [API documentation on readthedocs](http://python-order.readthedocs.io).
 
+<!-- marker-after-getting-started -->
+
+<!-- marker-before-installation -->
 
 # Installation and dependencies
 
@@ -58,41 +63,42 @@ Install *order* via [pip](https://pypi.python.org/pypi/order):
 pip install order
 ```
 
+<!-- marker-after-installation -->
 
-# Contributing and testing
+<!-- marker-before-contributing -->
+
+# Contributing
 
 If you like to contribute, feel free to open a pull request 🎉.
-Just make sure to add new test cases and run them via:
+
+## venv
+
+It is recommended to create a Python virtual environment (using `venv`) and install the development requirements.
 
 ```shell
-python -m unittest tests
+python -m venv --upgrade-deps .env/order
+source .env/order/bin/activate
+pip install .[dev]
 ```
 
-In general, tests should be run for Python 3.7 - 3.11.
-To run tests in a docker container, do
+## Testing
+
+After making changes, make sure to run test cases and linting checks.
 
 ```shell
-# run the tests
-./tests/docker.sh python:3.9
-
-# or interactively by adding a flag "1" to the command
-./tests/docker.sh python:3.9 1
-> pip install -r requirements.txt
-> python -m unittest tests
+./tests/test.sh
+./tests/lint.sh
 ```
 
-In addition, [PEP 8](https://www.python.org/dev/peps/pep-0008) compatibility should be checked with [flake8](https://pypi.org/project/flake8):
+<!-- marker-after-contributing -->
 
-```shell
-flake8 order tests setup.py
-```
-
-TODO: maybe move to black
-
+<!-- marker-before-development -->
 
 # Development
 
 - Original source hosted at [GitHub](https://github.com/cms-cat/order)
 - Report issues, questions, feature requests on [GitHub Issues](https://github.com/cms-cat/order/issues)
+
+<!-- marker-after-development -->
 
 <!-- marker-after-body -->

@@ -1,6 +1,14 @@
 # coding: utf-8
 
+"""
+Order-internal adapters, mainly used to avoid redundancies inside order-data.
+"""
+
 from __future__ import annotations
+
+
+__all__ = ["DatasetsAdapter"]
+
 
 import os
 import glob
@@ -11,7 +19,13 @@ import yaml
 from order.adapters.base import Adapter
 
 
-class DatasetsAdapter(Adapter):
+class OrderAdapter(Adapter):
+
+    # order adapters need to DataProvider's data_location in retrieve_data
+    needs_data_location = True
+
+
+class DatasetsAdapter(OrderAdapter):
 
     name = "order_datasets"
 
@@ -20,21 +34,20 @@ class DatasetsAdapter(Adapter):
 
     def retrieve_data(self, data_location: str, *, campaign_name: str) -> dict[str, Any]:
         # only supporting local evaluation for now
-        if not data_location.startswith("file://"):
-            raise NotImplementedError(f"data location {data_location} not handled by {self}")
+        if not self.location_is_local(data_location):
+            raise NotImplementedError(f"non-local location {data_location} not handled by {self}")
+
+        # build the directory in which to look for dataset files
+        dataset_dir = os.path.join(self.remove_scheme(data_location), "datasets", campaign_name)
 
         # read yaml files in the datasets directory
-        dataset_dir = os.path.join(
-            data_location.replace("file://", ""),
-            "datasets",
-            campaign_name,
-        )
         datasets = {}
         for path in glob.glob(os.path.join(dataset_dir, "*.yaml")):
             with open(path, "r") as f:
-                data = yaml.full_load(f)
-            if "name" not in data:
-                raise KeyError(f"no field 'name' defined in dataset yaml file {path}")
-            datasets[data["name"]] = data
+                # allow multiple documents per file
+                for data in yaml.load_all(f, Loader=yaml.SafeLoader):
+                    if "name" not in data:
+                        raise KeyError(f"no field 'name' defined in dataset yaml file {path}")
+                    datasets[data["name"]] = data
 
         return datasets
