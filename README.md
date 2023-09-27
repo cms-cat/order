@@ -20,6 +20,7 @@
   <a href="https://codecov.io/gh/cms-cat/order">
     <img alt="Code coverge" src="https://codecov.io/gh/cms-cat/order/branch/master/graph/badge.svg?token=JF7BVTNB2Y" />
   </a>
+  <img alt="Python version" src="https://img.shields.io/badge/Python-%E2%89%A53.8-blue" />
   <a href="https://pypi.python.org/pypi/order">
     <img alt="Package version" src="https://img.shields.io/pypi/v/order.svg?style=flat" />
   </a>
