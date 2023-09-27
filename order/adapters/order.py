@@ -12,7 +12,7 @@ __all__ = ["DatasetsAdapter"]
 
 import os
 import glob
-from typing import Any
+from typing import Any, Dict
 
 import yaml
 
@@ -32,7 +32,7 @@ class DatasetsAdapter(OrderAdapter):
     def get_cache_key(self, *, campaign_name: str) -> tuple:
         return (campaign_name,)
 
-    def retrieve_data(self, data_location: str, *, campaign_name: str) -> dict[str, Any]:
+    def retrieve_data(self, data_location: str, *, campaign_name: str) -> Dict[str, Any]:
         # only supporting local evaluation for now
         if not self.location_is_local(data_location):
             raise NotImplementedError(f"non-local location {data_location} not handled by {self}")
