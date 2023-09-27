@@ -113,6 +113,24 @@ class DataProvider(object):
     Interface between data locations plus caches and :py:class:`Adapter`'s.
     """
 
+    __instance = None
+
+    @classmethod
+    def instance(cls) -> "DataProvider":
+        """
+        Singleton constructor and getter.
+        """
+        if cls.__instance is None:
+            # TODO: use env variables to define arguments here
+            kwargs = {
+                "data_location": "file:///Users/marcel/repos/cat/order-data",
+                "cache_directory": "/Users/marcel/repos/cat/order-data/.cache",
+                "readonly_cache_directories": [],
+            }
+            cls.__instance = cls(**kwargs)
+
+        return cls.__instance
+
     def __init__(
         self,
         data_location: str,
@@ -158,7 +176,7 @@ class DataProvider(object):
         # TODO: in the cache-only mode (name to be discussed), we should raise an error here
 
         # invoke the adapter
-        args = (self.data_location,) if adapter.needs_data_locaton else ()
+        args = (self.data_location,) if adapter.needs_data_location else ()
         data = adapter.retrieve_data(*args, **adapter_data.arguments)
 
         # cache it

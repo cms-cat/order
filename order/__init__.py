@@ -18,3 +18,4 @@ from order.__meta__ import (
 # provisioning imports
 from order.adapters.base import AdapterData, Adapter, DataProvider
 import order.adapters.order
+import order.adapters.xsdb
