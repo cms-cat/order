@@ -76,8 +76,9 @@ If you like to contribute, feel free to open a pull request 🎉.
 It is recommended to create a Python virtual environment (using `venv`) and install the development requirements.
 
 ```shell
-python -m venv --upgrade-deps .env/order
+python -m venv .env/order
 source .env/order/bin/activate
+pip install -U pip setuptools
 pip install .[dev]
 ```
 
