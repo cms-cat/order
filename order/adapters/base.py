@@ -14,7 +14,7 @@ import os
 import re
 import json
 from abc import ABCMeta, abstractmethod, abstractproperty
-from typing import Any, Sequence, Dict
+from typing import Any, Sequence
 
 from pydantic import BaseModel
 
@@ -24,7 +24,7 @@ from order.util import create_hash
 class AdapterData(BaseModel):
 
     adapter: str
-    arguments: Dict[str, Any]
+    arguments: dict[str, Any]
 
     @property
     def name(self) -> str:
