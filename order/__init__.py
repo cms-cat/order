@@ -24,5 +24,5 @@ from order.settings import Settings
 from order.models.base import Lazy, Model
 from order.adapters.base import AdapterModel, Adapter, Materialized, DataProvider
 import order.adapters.order
-import order.adapters.dataset
+import order.adapters.dbs
 import order.adapters.xsdb

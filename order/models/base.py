@@ -57,7 +57,7 @@ class Lazy(object):
 
     @classmethod
     def can_make_strict(cls, type_: type) -> bool:
-        if type_.__dict__.get("_name") == "Dict":
+        if type_.__dict__.get("_name") in ("Dict", "List"):
             return False
 
         return True
