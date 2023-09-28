@@ -121,10 +121,20 @@ class DataProvider(object):
         Singleton constructor and getter.
         """
         if cls.__instance is None:
+
+            data_loc = os.environ["ORDER_DATA_LOCATION"]
+            if not data_loc.startswith("file://"):  #TODO put https and git
+                data_loc = f"file://{data_loc}"
+
+            cache_dir = os.environ["ORDER_CACHE_DIR"]
+            if not cache_dir.startswith("file://"):
+                data_loc = f"file://{cache_dir}"
+
+                
             # TODO: use env variables to define arguments here
             kwargs = {
-                "data_location": "file:///Users/marcel/repos/cat/order-data",
-                "cache_directory": "/Users/marcel/repos/cat/order-data/.cache",
+                "data_location": data_loc,
+                "cache_directory": cache_dir,
                 "readonly_cache_directories": [],
             }
             cls.__instance = cls(**kwargs)
