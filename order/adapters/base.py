@@ -171,6 +171,7 @@ class DataProvider(object):
         # when cached, read the cached object instead
         readable_path, writable_path, cached = self.check_cache(cache_name)
         if cached:
+            print("reading from cache!")
             return self.read_cache(readable_path)
 
         # TODO: in the cache-only mode (name to be discussed), we should raise an error here
