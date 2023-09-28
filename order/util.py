@@ -5,9 +5,6 @@ from __future__ import annotations
 Helpful utilities.
 """
 
-from __future__ import annotations
-
-
 __all__ = ["no_value", "create_hash"]
 
 from typing import Any, Dict
@@ -15,7 +12,7 @@ from typing import Any, Dict
 
 import hashlib
 import requests
-from order.settings import Settings 
+
 
 #: Unique object denoting *no value*.
 no_value = object()
@@ -34,6 +31,7 @@ def create_hash(inp: Any, l: int = 10, algo: str = "sha256", to_int: bool = Fals
 
 
 def query_dbs(dataset_key: str, dbs_instance: str = "prod/global") -> Dict[str, Any]:
+    from order.settings import Settings 
     proxy = Settings.instance().get_cms_cert()
     
     resource = f"https://cmsweb.cern.ch:8443/dbs/{dbs_instance}/DBSReader/files?dataset={dataset_key}&detail=True"
