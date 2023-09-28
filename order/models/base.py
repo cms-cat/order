@@ -126,7 +126,7 @@ class ModelMeta(type(BaseModel)):
         classdict[lazy_attr] = field
 
         # add a property for the original attribute
-        def fget(self) -> float:
+        def fget(self):
             value = getattr(self, lazy_attr)
 
             # when the value is (already) materialized, just return it
@@ -154,12 +154,11 @@ class ModelMeta(type(BaseModel)):
                         )
 
                     # set the value
-                    value_ = materialized[adapter_model_.key]
-                    setattr(self, lazy_attr_, value_)
+                    setattr(self, lazy_attr_, materialized[adapter_model_.key])
 
                     # assign it to the return value for the requested attribute
                     if attr_ == attr:
-                        value = value_
+                        value = getattr(self, lazy_attr_)
 
             # complain if the return value was not set
             if value == no_value:
