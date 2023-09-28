@@ -77,6 +77,10 @@ class Settings(object):
     def get_cache_only(cls) -> bool:
         return cls.flag_to_bool(cls.get_env("ORDER_CACHE_ONLY", False))
 
+    @classmethod
+    def get_cms_cert(cls) -> str:
+        return cls.get_env("X509_USER_PROXY")
+    
     def __init__(self):
         super().__init__()
 
