@@ -24,5 +24,5 @@ class Campaign(Model):
     id: int
     name: str
     tier: str
-    ecm: Lazy[int]
+    ecm: Lazy[float]
     recommended_gt: GT

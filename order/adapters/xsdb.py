@@ -20,5 +20,5 @@ class XSDBAdapter(Adapter):
     def get_cache_key(self, *, foo: str) -> tuple:
         return (foo,)
 
-    def retrieve_data(self, *, foo: str) -> float:
-        return foo * 2.0
+    def retrieve_data(self, *, foo: int) -> float:
+        return float(foo * 2)

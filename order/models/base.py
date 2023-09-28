@@ -11,9 +11,10 @@ __all__ = ["Lazy", "Model"]
 
 
 import re
-from typing import Union, Any
+from typing import Union, Any, _AnnotatedAlias as AnnotatedType
 
-from pydantic import BaseModel, Field, ConfigDict
+from typing_extensions import Annotated
+from pydantic import BaseModel, Field, Strict, ConfigDict
 from pydantic.fields import FieldInfo
 
 from order.adapters.base import AdapterData, DataProvider
@@ -25,14 +26,32 @@ class Lazy(object):
     def __class_getitem__(cls, types):
         if not isinstance(types, tuple):
             types = (types,)
-        return Union[types + (AdapterData,)]
+        return Union[tuple(map(cls.make_strict, types)) + (AdapterData,)]
+
+    @classmethod
+    def make_strict(cls, type_: type) -> AnnotatedType:
+        # when not decorated with strict meta data, just create a new strict tyoe
+        if (
+            not isinstance(type_, AnnotatedType) or
+            not any(isinstance(m, Strict) for m in getattr(type_, "__metadata__", []))
+        ):
+            return Annotated[type_, Strict()]
+
+        # when already strict, return as is
+        metadata = type_.__metadata__
+        if all(m.strict for m in metadata if isinstance(m, Strict)):
+            return type_
+
+        # at this point, strict metadata exists but it is actually disabled,
+        # so replace it in metadata and return a new annotated type
+        metadata = [
+            (Strict() if isinstance(m, Strict) else m)
+            for m in metadata
+        ]
+        return Annotated[(*type_.__args__, *metadata)]
 
 
 class ModelMeta(type(BaseModel)):
-    """
-    TODO:
-        - cast to proper type after adapter materialization (validation is done though)
-    """
 
     def __new__(metacls, classname: str, bases: tuple, classdict: dict[str, Any]) -> "ModelMeta":
         # convert "Lazy" annotations to proper fields and add access properties
@@ -106,7 +125,7 @@ class ModelMeta(type(BaseModel)):
         fset_type = f"Lazy[{', '.join(type_names)}]"
         locals_ = {}
         exec(
-            f"def fset(self, value: {fset_type}) -> None: setattr(self, \"{lazy_attr}\", value)",
+            f"def fset(self, value: {fset_type}) -> None: setattr(self, '{lazy_attr}', value)",
             globals(),
             locals_,
         )
