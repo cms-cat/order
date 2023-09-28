@@ -9,7 +9,7 @@ Pythonic class collection to structure and access CMS metadata.
 __all__ = [
     "Settings",
     "Lazy", "Model",
-    "AdapterData", "Adapter", "DataProvider",
+    "AdapterModel", "Adapter", "Materialized", "DataProvider",
 ]
 
 
@@ -22,6 +22,6 @@ from order.__meta__ import (
 # provisioning imports
 from order.settings import Settings
 from order.models.base import Lazy, Model
-from order.adapters.base import AdapterData, Adapter, DataProvider
+from order.adapters.base import AdapterModel, Adapter, Materialized, DataProvider
 import order.adapters.order
 import order.adapters.xsdb

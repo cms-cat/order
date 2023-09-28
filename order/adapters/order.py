@@ -12,11 +12,10 @@ __all__ = ["DatasetsAdapter"]
 
 import os
 import glob
-from typing import Any, Dict
 
 import yaml
 
-from order.adapters.base import Adapter
+from order.adapters.base import Adapter, Materialized
 
 
 class OrderAdapter(Adapter):
@@ -29,10 +28,12 @@ class DatasetsAdapter(OrderAdapter):
 
     name = "order_datasets"
 
-    def get_cache_key(self, *, campaign_name: str) -> tuple:
-        return (campaign_name,)
-
-    def retrieve_data(self, data_location: str, *, campaign_name: str) -> Dict[str, Any]:
+    def retrieve_data(
+        self,
+        data_location: str,
+        *,
+        campaign_name: str,
+    ) -> Materialized:
         # only supporting local evaluation for now
         if not self.location_is_local(data_location):
             raise NotImplementedError(f"non-local location {data_location} not handled by {self}")
@@ -50,4 +51,4 @@ class DatasetsAdapter(OrderAdapter):
                         raise KeyError(f"no field 'name' defined in dataset yaml file {path}")
                     datasets[data["name"]] = data
 
-        return datasets
+        return Materialized(datasets=datasets)

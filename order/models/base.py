@@ -17,7 +17,8 @@ from typing_extensions import Annotated
 from pydantic import BaseModel, Field, Strict, ConfigDict
 from pydantic.fields import FieldInfo
 
-from order.adapters.base import AdapterData, DataProvider
+from order.adapters.base import AdapterModel, DataProvider
+from order.util import no_value
 
 
 class Lazy(object):
@@ -26,10 +27,14 @@ class Lazy(object):
     def __class_getitem__(cls, types):
         if not isinstance(types, tuple):
             types = (types,)
-        return Union[tuple(map(cls.make_strict, types)) + (AdapterData,)]
+        return Union[tuple(map(cls.make_strict, types)) + (AdapterModel,)]
 
     @classmethod
     def make_strict(cls, type_: type) -> AnnotatedType:
+        # some types cannot be strict
+        if not cls.can_make_strict(type_):
+            return type_
+
         # when not decorated with strict meta data, just create a new strict tyoe
         if (
             not isinstance(type_, AnnotatedType) or
@@ -49,6 +54,13 @@ class Lazy(object):
             for m in metadata
         ]
         return Annotated[(*type_.__args__, *metadata)]
+
+    @classmethod
+    def can_make_strict(cls, type_: type) -> bool:
+        if type_.__dict__.get("_name") == "Dict":
+            return False
+
+        return True
 
 
 class ModelMeta(type(BaseModel)):
@@ -116,9 +128,46 @@ class ModelMeta(type(BaseModel)):
         # add a property for the original attribute
         def fget(self) -> float:
             value = getattr(self, lazy_attr)
-            if isinstance(value, AdapterData):
-                with DataProvider.instance().get_data(value) as value:
-                    setattr(self, lazy_attr, value)
+
+            # when the value is (already) materialized, just return it
+            if not isinstance(value, AdapterModel):
+                return value
+
+            # at this point, we must materialize the value through the adapter
+            # and assign all resulting lazy attributes
+            adapter_model = value
+            value = no_value
+            with DataProvider.instance().materialize(adapter_model) as materialized:
+                # loop through known lazy attributes and check which of them is assigned a
+                # materialized value
+                for attr_, lazy_attr_ in self._lazy_attrs:
+                    # the adapter model must be compatible that the called one
+                    adapter_model_ = getattr(self, lazy_attr_)
+                    if not adapter_model.compare_signature(adapter_model_):
+                        continue
+
+                    # complain when the adapter did not provide a value for this attribute
+                    if adapter_model_.key not in materialized:
+                        raise KeyError(
+                            f"adapter '{adapter_model.name}' did not provide field "
+                            f"'{adapter_model_.key}' as required by attribute '{attr_}'",
+                        )
+
+                    # set the value
+                    value_ = materialized[adapter_model_.key]
+                    setattr(self, lazy_attr_, value_)
+
+                    # assign it to the return value for the requested attribute
+                    if attr_ == attr:
+                        value = value_
+
+            # complain if the return value was not set
+            if value == no_value:
+                raise RuntimeError(
+                    f"adapter referred to by '{adapter_model}' did not materialize value "
+                    f"for field '{attr}'",
+                )
+
             return value
 
         # we need a valid type hint for the setter so create the function dynamically
@@ -135,10 +184,16 @@ class ModelMeta(type(BaseModel)):
 
 
 class Model(BaseModel, metaclass=ModelMeta):
+    """
+    Base model for all order entities.
+    """
 
     def __repr_args__(self):
+        """
+        Yields all key-values pairs to be injected into the representation.
+        """
         yield from super().__repr_args__()
 
         for attr, lazy_attr in self._lazy_attrs:
             value = getattr(self, lazy_attr)
-            yield attr, f"lazy({value.name})" if isinstance(value, AdapterData) else value
+            yield attr, f"lazy({value.name})" if isinstance(value, AdapterModel) else value

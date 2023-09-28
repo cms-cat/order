@@ -11,6 +11,8 @@ from __future__ import annotations
 __all__ = ["GT", "Campaign"]
 
 
+from typing import Dict
+
 from order.models.base import Model, Lazy
 
 
@@ -23,6 +25,7 @@ class Campaign(Model):
 
     id: int
     name: str
-    tier: str
+    tier: Lazy[str]
     ecm: Lazy[float]
     recommended_gt: GT
+    datasets: Lazy[Dict[str, dict]]

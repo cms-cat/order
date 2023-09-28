@@ -7,12 +7,13 @@ Base class definitions for adapters and the overarching data provider for cached
 from __future__ import annotations
 
 
-__all__ = ["AdapterData", "Adapter", "DataProvider"]
+__all__ = ["AdapterModel", "Adapter", "Materialized", "DataProvider"]
 
 
 import os
 import re
 import json
+import shutil
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Any, Sequence, Dict
@@ -23,14 +24,22 @@ from order.settings import Settings
 from order.util import create_hash
 
 
-class AdapterData(BaseModel):
+class AdapterModel(BaseModel):
 
     adapter: str
     arguments: Dict[str, Any]
+    key: str
 
     @property
     def name(self) -> str:
         return self.adapter
+
+    def compare_signature(self, other: "AdapterModel") -> bool:
+        return (
+            isinstance(other, AdapterModel) and
+            other.adapter == self.adapter and
+            other.arguments == self.arguments
+        )
 
 
 class AdapterMeta(ABCMeta):
@@ -72,6 +81,12 @@ class AdapterMeta(ABCMeta):
         return cls.adapters[name]
 
 
+class Materialized(dict):
+    """
+    Container for materialized values returned by :py:meth:`Adapter.retrieve_data`.
+    """
+
+
 class Adapter(object, metaclass=AdapterMeta):
     """
     Abstract base class for all adapters.
@@ -89,14 +104,19 @@ class Adapter(object, metaclass=AdapterMeta):
         return ""
 
     @abstractmethod
-    def get_cache_key(self, **kwargs) -> tuple:
-        # must be implemented by subclasses
-        return ()
-
-    @abstractmethod
-    def retrieve_data(self) -> Any:
+    def retrieve_data(self) -> Materialized:
         # must be implemented by subclasses
         return
+
+    def get_cache_key(self, **kwargs) -> tuple:
+        # must be implemented by subclasses
+        return tuple(
+            (
+                key,
+                self.get_cache_key(**kwargs[key]) if isinstance(kwargs[key], dict) else kwargs[key],
+            )
+            for key in sorted(kwargs)
+        )
 
     @classmethod
     def location_is_local(cls, data_location: str) -> bool:
@@ -139,6 +159,7 @@ class DataProvider(object):
                 data_location=settings.data_location,
                 cache_directory=settings.cache_directory,
                 readonly_cache_directories=settings.readonly_cache_directories,
+                clear_cache=settings.clear_cache,
             )
 
         return cls.__instance
@@ -148,6 +169,7 @@ class DataProvider(object):
         data_location: str,
         cache_directory: str,
         readonly_cache_directories: Sequence[str] = (),
+        clear_cache: bool = False,
     ) -> None:
         super().__init__()
 
@@ -166,25 +188,30 @@ class DataProvider(object):
                 "readonly_cache_directories",
             )
 
+        # clear the cache initially
+        if clear_cache and os.path.exists(self.cache_directory):
+            shutil.rmtree(self.cache_directory)
+
     @contextmanager
-    def get_data(self, adapter_data: AdapterData | dict[str, Any]) -> None:
-        if not isinstance(adapter_data, AdapterData):
-            adapter_data = AdapterData(**adapter_data)
+    def materialize(self, adapter_model: AdapterModel | dict[str, Any]) -> None:
+        if not isinstance(adapter_model, AdapterModel):
+            adapter_model = AdapterModel(**adapter_model)
 
         # get the adapter class and instantiate it
-        adapter = AdapterMeta.get_cls(adapter_data.name)()
+        adapter = AdapterMeta.get_cls(adapter_model.name)()
 
         # determine the basename of the cache file (if existing)
         h = (
             os.path.realpath(self.data_location),
-            adapter.get_cache_key(**adapter_data.arguments),
+            adapter.get_cache_key(**adapter_model.arguments),
         )
         cache_name = f"{create_hash(h)}.json"
 
         # when cached, read the cached object instead
         readable_path, writable_path, cached = self.check_cache(cache_name)
         if cached:
-            return self.read_cache(readable_path)
+            yield self.read_cache(readable_path)
+            return
 
         # in cache-only mode, this point should not be reached
         if Settings.instance().cache_only:
@@ -192,11 +219,18 @@ class DataProvider(object):
 
         # invoke the adapter
         args = (self.data_location,) if adapter.needs_data_location else ()
-        data = adapter.retrieve_data(*args, **adapter_data.arguments)
+        materialized = adapter.retrieve_data(*args, **adapter_model.arguments)
+
+        # complain when the return value is not a materialized container
+        if not isinstance(materialized, Materialized):
+            raise TypeError(
+                f"retrieve_data of adapter '{adapter_model.name}' must return Materialized "
+                f"instance, but got '{materialized}'",
+            )
 
         # yield the materialized data and cache it if the receiving context did not raise
         try:
-            yield data
+            yield materialized
         except Exception as e:
             if isinstance(e, self.SkipCaching):
                 return
@@ -204,7 +238,7 @@ class DataProvider(object):
 
         # cache it
         if writable_path:
-            self.write_cache(writable_path, data)
+            self.write_cache(writable_path, materialized)
 
     def check_cache(self, cache_name: str) -> [str, str, bool]:
         # check the writable (default) cache directory
@@ -219,14 +253,14 @@ class DataProvider(object):
 
         return writable_path, writable_path, False
 
-    def write_cache(self, path: str, data: Any) -> None:
+    def write_cache(self, path: str, materialized: Materialized) -> None:
         dirname = os.path.dirname(path)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
 
         with open(path, "w") as f:
-            json.dump(data, f)
+            json.dump(materialized, f)
 
-    def read_cache(self, path: str) -> Any:
+    def read_cache(self, path: str) -> Materialized:
         with open(path, "r") as f:
-            return json.load(f)
+            return Materialized(json.load(f))
