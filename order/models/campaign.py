@@ -4,9 +4,7 @@
 Campaign definition.
 """
 
-
 from __future__ import annotations
-from typing import Dict
 
 
 __all__ = ["GT", "Campaign"]
@@ -30,4 +28,4 @@ class Campaign(Model):
     tier: Lazy[str]
     ecm: Lazy[float]
     recommended_gt: GT
-    dataset: Lazy[Dict[str,Dataset]]
+    datasets: Lazy[Dict[str, Dataset]]
