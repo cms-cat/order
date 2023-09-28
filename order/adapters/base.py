@@ -13,11 +13,13 @@ __all__ = ["AdapterData", "Adapter", "DataProvider"]
 import os
 import re
 import json
+from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Any, Sequence, Dict
 
 from pydantic import BaseModel
 
+from order.settings import Settings
 from order.util import create_hash
 
 
@@ -38,7 +40,12 @@ class AdapterMeta(ABCMeta):
 
     adapters: dict[str, "AdapterMeta"] = {}
 
-    def __new__(metacls, classname: str, bases: tuple[type], classdict: dict[str, Any]):
+    def __new__(
+        metacls,
+        classname: str,
+        bases: tuple[type],
+        classdict: dict[str, Any],
+    ) -> "AdapterMeta":
         cls = type.__new__(metacls, classname, bases, classdict)
 
         # check if the class was registered previously
@@ -101,7 +108,7 @@ class Adapter(object, metaclass=AdapterMeta):
 
     @classmethod
     def remove_scheme(cls, data_location: str) -> str:
-        return re.sub(r"^(file|https?)\:\/\/", "", data_location)
+        return re.sub(r"^(\w+)\:\/\/", "", data_location)
 
 
 # remove temporary _name attribute
@@ -115,29 +122,24 @@ class DataProvider(object):
 
     __instance = None
 
+    class SkipCaching(Exception):
+        """
+        Special exception type that can be thrown within the :py:meth:`DataProvider.get_data`
+        context to instruct it to skip caching.
+        """
+
     @classmethod
     def instance(cls) -> "DataProvider":
         """
         Singleton constructor and getter.
         """
         if cls.__instance is None:
-
-            data_loc = os.environ["ORDER_DATA_LOCATION"]
-            if not data_loc.startswith("file://"):  #TODO put https and git
-                data_loc = f"file://{data_loc}"
-
-            cache_dir = os.environ["ORDER_CACHE_DIR"]
-            if not cache_dir.startswith("file://"):
-                data_loc = f"file://{cache_dir}"
-
-                
-            # TODO: use env variables to define arguments here
-            kwargs = {
-                "data_location": data_loc,
-                "cache_directory": cache_dir,
-                "readonly_cache_directories": [],
-            }
-            cls.__instance = cls(**kwargs)
+            settings = Settings.instance()
+            cls.__instance = cls(
+                data_location=settings.data_location,
+                cache_directory=settings.cache_directory,
+                readonly_cache_directories=settings.readonly_cache_directories,
+            )
 
         return cls.__instance
 
@@ -146,7 +148,7 @@ class DataProvider(object):
         data_location: str,
         cache_directory: str,
         readonly_cache_directories: Sequence[str] = (),
-    ):
+    ) -> None:
         super().__init__()
 
         # expansion helper
@@ -164,7 +166,8 @@ class DataProvider(object):
                 "readonly_cache_directories",
             )
 
-    def get_data(self, adapter_data: AdapterData | dict[str, Any]) -> Any:
+    @contextmanager
+    def get_data(self, adapter_data: AdapterData | dict[str, Any]) -> None:
         if not isinstance(adapter_data, AdapterData):
             adapter_data = AdapterData(**adapter_data)
 
@@ -181,20 +184,27 @@ class DataProvider(object):
         # when cached, read the cached object instead
         readable_path, writable_path, cached = self.check_cache(cache_name)
         if cached:
-            print("reading from cache!")
             return self.read_cache(readable_path)
 
-        # TODO: in the cache-only mode (name to be discussed), we should raise an error here
+        # in cache-only mode, this point should not be reached
+        if Settings.instance().cache_only:
+            raise Exception(f"adapter '{adapter.name}' cannot be evaluated in cache-only mode")
 
         # invoke the adapter
         args = (self.data_location,) if adapter.needs_data_location else ()
         data = adapter.retrieve_data(*args, **adapter_data.arguments)
 
+        # yield the materialized data and cache it if the receiving context did not raise
+        try:
+            yield data
+        except Exception as e:
+            if isinstance(e, self.SkipCaching):
+                return
+            raise e
+
         # cache it
         if writable_path:
             self.write_cache(writable_path, data)
-
-        return data
 
     def check_cache(self, cache_name: str) -> [str, str, bool]:
         # check the writable (default) cache directory

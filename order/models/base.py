@@ -32,7 +32,6 @@ class ModelMeta(type(BaseModel)):
     """
     TODO:
         - cast to proper type after adapter materialization (validation is done though)
-        - prevent caching in data provider when validation failed?
     """
 
     def __new__(metacls, classname: str, bases: tuple, classdict: dict[str, Any]) -> "ModelMeta":
@@ -99,8 +98,8 @@ class ModelMeta(type(BaseModel)):
         def fget(self) -> float:
             value = getattr(self, lazy_attr)
             if isinstance(value, AdapterData):
-                value = DataProvider.instance().get_data(value)
-                setattr(self, lazy_attr, value)
+                with DataProvider.instance().get_data(value) as value:
+                    setattr(self, lazy_attr, value)
             return value
 
         # we need a valid type hint for the setter so create the function dynamically
