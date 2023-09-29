@@ -17,6 +17,7 @@ import shutil
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Any, Sequence, Dict
+from types import GeneratorType
 
 from pydantic import BaseModel
 
@@ -50,23 +51,23 @@ class AdapterMeta(ABCMeta):
     adapters: dict[str, "AdapterMeta"] = {}
 
     def __new__(
-        metacls,
-        classname: str,
+        meta_cls,
+        class_name: str,
         bases: tuple[type],
-        classdict: dict[str, Any],
+        class_dict: dict[str, Any],
     ) -> "AdapterMeta":
-        cls = type.__new__(metacls, classname, bases, classdict)
+        cls = type.__new__(meta_cls, class_name, bases, class_dict)
 
         # check if the class was registered previously
-        if metacls.has_cls(cls.name):
+        if meta_cls.has_cls(cls.name):
             raise ValueError(
                 f"cannot register adapter {cls}, name '{cls.name}' previously used by "
-                f"{metacls.adapters[cls.name]}",
+                f"{meta_cls.adapters[cls.name]}",
             )
 
         # store class by name
         if getattr(cls, "_name", "") != "base":
-            metacls.adapters[cls.name] = cls
+            meta_cls.adapters[cls.name] = cls
 
         return cls
 
@@ -193,7 +194,7 @@ class DataProvider(object):
             shutil.rmtree(self.cache_directory)
 
     @contextmanager
-    def materialize(self, adapter_model: AdapterModel | dict[str, Any]) -> None:
+    def materialize(self, adapter_model: AdapterModel | dict[str, Any]) -> GeneratorType:
         if not isinstance(adapter_model, AdapterModel):
             adapter_model = AdapterModel(**adapter_model)
 

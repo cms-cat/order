@@ -7,11 +7,8 @@ __all__ = ["Dataset"]
 
 
 from typing import List
+
 from order.models.base import Model, Lazy
-
-
-# class DAS(Model):
-#     das_name: str
 
 
 class File(Model):

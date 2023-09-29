@@ -78,9 +78,9 @@ class Settings(object):
         return cls.flag_to_bool(cls.get_env("ORDER_CACHE_ONLY", False))
 
     @classmethod
-    def get_cms_cert(cls) -> str:
-        return cls.get_env("X509_USER_PROXY")
-    
+    def get_user_proxy(cls) -> str:
+        return cls.get_env("X509_USER_PROXY", f"/tmp/x509up_u{os.getuid()}")
+
     def __init__(self):
         super().__init__()
 
@@ -88,5 +88,6 @@ class Settings(object):
         self.data_location: str = self.get_data_location()
         self.cache_directory: str = self.get_cache_directory()
         self.readonly_cache_directories: list[str] = self.get_readonly_cache_directories()
-        self.clear_cache = self.get_clear_cache()
-        self.cache_only = self.get_cache_only()
+        self.clear_cache: bool = self.get_clear_cache()
+        self.cache_only: bool = self.get_cache_only()
+        self.user_proxy: str = self.get_user_proxy()

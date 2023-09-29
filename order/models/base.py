@@ -11,9 +11,10 @@ __all__ = ["Lazy", "Model"]
 
 
 import re
-from typing import Union, Any, _AnnotatedAlias as AnnotatedType
+from typing import Union, Any
+from types import GeneratorType
 
-from typing_extensions import Annotated
+from typing_extensions import Annotated, _AnnotatedAlias as AnnotatedType
 from pydantic import BaseModel, Field, Strict, ConfigDict
 from pydantic.fields import FieldInfo
 
@@ -65,65 +66,70 @@ class Lazy(object):
 
 class ModelMeta(type(BaseModel)):
 
-    def __new__(metacls, classname: str, bases: tuple, classdict: dict[str, Any]) -> "ModelMeta":
+    def __new__(meta_cls, class_name: str, bases: tuple, class_dict: dict[str, Any]) -> "ModelMeta":
         # convert "Lazy" annotations to proper fields and add access properties
         lazy_attrs = []
-        for attr, type_str in list(classdict.get("__annotations__", {}).items()):
-            type_names = metacls.parse_lazy_annotation(type_str)
+        for attr, type_str in list(class_dict.get("__annotations__", {}).items()):
+            type_names = meta_cls.parse_lazy_annotation(type_str)
             if type_names:
-                metacls.register_lazy_attr(attr, type_names, classname, classdict)
+                meta_cls.register_lazy_attr(attr, type_names, class_name, class_dict)
                 lazy_attrs.append(attr)
 
         # store names of lazy attributes
-        classdict["_lazy_attrs"] = [(attr, metacls.get_lazy_attr(attr)) for attr in lazy_attrs]
+        class_dict["_lazy_attrs"] = [(attr, meta_cls.get_lazy_attr(attr)) for attr in lazy_attrs]
 
-        # enable assignment validation
-        classdict["model_config"] = model_config = classdict.get("model_config") or ConfigDict()
+        # check the model_config
+        class_dict["model_config"] = model_config = class_dict.get("model_config") or ConfigDict()
         if not isinstance(model_config, dict):
             raise TypeError(
                 "class attribute 'model_config' should be empty or a ConfigDict, "
                 f"but got {model_config}",
             )
+
+        # enable default value validation
+        model_config["validate_default"] = True
+
+        # enable assignment validation
         model_config["validate_assignment"] = True
 
         # create the class
-        cls = super().__new__(metacls, classname, bases, classdict)
+        cls = super().__new__(meta_cls, class_name, bases, class_dict)
 
         return cls
 
     @classmethod
-    def parse_lazy_annotation(metacls, type_str: str) -> list[str] | None:
+    def parse_lazy_annotation(meta_cls, type_str: str) -> list[str] | None:
         m = re.match(r"^Lazy\[(.+)\]$", type_str)
         return m and [s.strip() for s in m.group(1).split(",")]
 
     @classmethod
-    def get_lazy_attr(metacls, attr: str) -> str:
+    def get_lazy_attr(meta_cls, attr: str) -> str:
         return f"lazy_{attr}"
 
     @classmethod
     def register_lazy_attr(
-        metacls,
+        meta_cls,
         attr: str,
         type_names: list[str],
-        classname: str,
-        classdict: dict[str, Any],
+        class_name: str,
+        class_dict: dict[str, Any],
     ) -> None:
         # if a field already exist, get it
-        field = classdict.get(attr)
+        field = class_dict.get(attr)
         if field is not None and not isinstance(field, FieldInfo):
             raise TypeError(
                 f"class attribute '{attr}' should be empty or a Field, but got {field}",
             )
-        classdict.pop(attr, None)
+        class_dict.pop(attr, None)
 
         # exchange the annotation with the lazy one
-        lazy_attr = metacls.get_lazy_attr(attr)
-        classdict["__annotations__"][lazy_attr] = classdict["__annotations__"].pop(attr)
+        lazy_attr = meta_cls.get_lazy_attr(attr)
+        class_dict["__annotations__"][lazy_attr] = class_dict["__annotations__"].pop(attr)
 
         # add a field for the lazy attribute with aliases
         _field = Field(alias=attr, serialization_alias=attr, repr=False)
         field = FieldInfo.merge_field_infos(field, _field) if field else _field
-        classdict[lazy_attr] = field
+        class_dict[lazy_attr] = field
 
         # add a property for the original attribute
         def fget(self):
@@ -179,7 +185,7 @@ class ModelMeta(type(BaseModel)):
         )
         fset = locals_["fset"]
 
-        classdict[attr] = property(fget=fget, fset=fset)
+        class_dict[attr] = property(fget=fget, fset=fset)
 
 
 class Model(BaseModel, metaclass=ModelMeta):
@@ -187,7 +193,7 @@ class Model(BaseModel, metaclass=ModelMeta):
     Base model for all order entities.
     """
 
-    def __repr_args__(self):
+    def __repr_args__(self) -> GeneratorType:
         """
         Yields all key-values pairs to be injected into the representation.
         """
