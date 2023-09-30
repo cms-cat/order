@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-__all__ = ["Dataset"]
+__all__ = ["GenOrder", "DatasetInfo", "Dataset", "LazyDataset", "DatasetIndex"]
 
 
 import enum

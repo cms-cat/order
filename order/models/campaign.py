@@ -7,24 +7,17 @@ Campaign definition.
 from __future__ import annotations
 
 
-__all__ = ["GT", "Campaign"]
+__all__ = ["Campaign"]
 
 
-from order.types import Lazy, Field
-from order.models.base import Model
+from order.types import Lazy, NonEmptyStrictStr, StrictFloat, Field
+from order.models.unique import UniqueObject
 from order.models.dataset import DatasetIndex
 
 
-class GT(Model):
+class Campaign(UniqueObject):
 
-    gt: str
-
-
-class Campaign(Model):
-
-    id: int
-    name: str
-    tier: Lazy[str]
-    ecm: Lazy[float]
-    recommended_gt: GT
+    tier: Lazy[NonEmptyStrictStr]
+    ecm: Lazy[StrictFloat]
+    recommended_global_tag: NonEmptyStrictStr
     datasets: DatasetIndex = Field(default_factory=DatasetIndex)
