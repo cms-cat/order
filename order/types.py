@@ -13,7 +13,7 @@ __all__ = []
 
 import re
 from collections.abc import KeysView, ValuesView  # noqa
-from typing import Any, Union, TypeVar, ClassVar, List, Tuple, Sequence, Set, Dict  # noqa
+from typing import Any, Union, TypeVar, ClassVar, List, Tuple, Sequence, Set, Dict, Callable  # noqa
 from types import GeneratorType  # noqa
 
 from typing_extensions import Annotated, _AnnotatedAlias as AnnotatedType  # noqa

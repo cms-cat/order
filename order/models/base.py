@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict
 
 from order.types import Any, GeneratorType, Field, FieldInfo, Lazy
 from order.adapters.base import AdapterModel, DataProvider
-from order.util import no_value
+from order.util import no_value, colored
 
 
 class ModelMeta(type(BaseModel)):
@@ -160,11 +160,15 @@ class Model(BaseModel, metaclass=ModelMeta):
     Base model for all order entities.
     """
 
+    def __repr_name__(self) -> str:
+        return colored(super().__repr_name__(), color="light_green")
+
     def __repr_args__(self) -> GeneratorType:
         """
         Yields all key-values pairs to be injected into the representation.
         """
-        yield from super().__repr_args__()
+        for attr, value in super().__repr_args__():
+            yield colored(attr, color="light_blue"), value
 
         for attr, lazy_attr in self._lazy_attrs.items():
             # skip when field was originally skipped
@@ -173,4 +177,7 @@ class Model(BaseModel, metaclass=ModelMeta):
                 continue
 
             value = getattr(self, lazy_attr)
-            yield attr, f"lazy({value.adapter})" if isinstance(value, AdapterModel) else value
+            yield (
+                colored(attr, color="light_blue"),
+                f"lazy({value.adapter})" if isinstance(value, AdapterModel) else value,
+            )
