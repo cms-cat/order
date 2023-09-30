@@ -96,7 +96,4 @@ class LazyDataset(LazyUniqueObject):
 class DatasetIndex(UniqueObjectIndex):
 
     class_name: NonEmptyStrictStr = Field(default=Dataset)
-    objects: Lazy[List[Union[Dataset, LazyDataset]]] = Field(
-        default_factory=lambda: [],
-        repr=False,
-    )
+    objects: Lazy[List[Union[Dataset, LazyDataset]]] = Field(default_factory=list, repr=False)

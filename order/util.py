@@ -70,7 +70,7 @@ class DotAccessProxy(object):
         self._getter = getter
         self._setter = setter
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> Any:
         return self._getter(*args, **kwargs)
 
     def __getattr__(self, attr: str) -> Any:

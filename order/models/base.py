@@ -122,7 +122,7 @@ class ModelMeta(type(BaseModel)):
                     # complain when the adapter did not provide a value for this attribute
                     if adapter_model_.key not in materialized:
                         raise KeyError(
-                            f"adapter '{adapter_model.name}' did not provide field "
+                            f"adapter '{adapter_model.adapter}' did not provide field "
                             f"'{adapter_model_.key}' as required by attribute '{attr_}'",
                         )
 
@@ -173,4 +173,4 @@ class Model(BaseModel, metaclass=ModelMeta):
                 continue
 
             value = getattr(self, lazy_attr)
-            yield attr, f"lazy({value.name})" if isinstance(value, AdapterModel) else value
+            yield attr, f"lazy({value.adapter})" if isinstance(value, AdapterModel) else value

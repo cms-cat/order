@@ -28,11 +28,7 @@ class AdapterModel(BaseModel):
 
     adapter: NonEmptyStrictStr
     key: StrictStr
-    arguments: Dict[NonEmptyStrictStr, Any] = Field(default_factory=lambda: {})
-
-    @property
-    def name(self) -> str:
-        return self.adapter
+    arguments: Dict[NonEmptyStrictStr, Any] = Field(default_factory=dict)
 
     def compare_signature(self, other: "AdapterModel") -> bool:
         return (
@@ -109,7 +105,6 @@ class Adapter(object, metaclass=AdapterMeta):
         return
 
     def get_cache_key(self, **kwargs) -> tuple:
-        # must be implemented by subclasses
         return tuple(
             (
                 key,
@@ -137,7 +132,7 @@ del Adapter._name
 
 class DataProvider(object):
     """
-    Interface between data locations plus caches and :py:class:`Adapter`'s.
+    Interface between data locations plus caches and :py:class:`Adapter` instances.
     """
 
     __instance = None
@@ -166,6 +161,7 @@ class DataProvider(object):
 
     def __init__(
         self,
+        *,
         data_location: str,
         cache_directory: str,
         readonly_cache_directories: Sequence[str] = (),
@@ -202,7 +198,7 @@ class DataProvider(object):
             adapter_model = AdapterModel(**adapter_model)
 
         # get the adapter class and instantiate it
-        adapter = AdapterMeta.get_cls(adapter_model.name)()
+        adapter = AdapterMeta.get_cls(adapter_model.adapter)()
 
         # merge kwargs
         adapter_kwargs = {**adapter_model.arguments, **(adapter_kwargs or {})}
@@ -231,7 +227,7 @@ class DataProvider(object):
         # complain when the return value is not a materialized container
         if not isinstance(materialized, Materialized):
             raise TypeError(
-                f"retrieve_data of adapter '{adapter_model.name}' must return Materialized "
+                f"retrieve_data of adapter '{adapter_model.adapter}' must return a Materialized "
                 f"instance, but got '{materialized}'",
             )
 

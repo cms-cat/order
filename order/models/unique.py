@@ -280,7 +280,7 @@ class UniqueObjectIndex(WrapsUniqueClcass):
     """
 
     objects: Lazy[List[Union[UniqueObject, LazyUniqueObject]]] = Field(
-        default_factory=lambda: [],
+        default_factory=list,
         repr=False,
     )
 
@@ -338,7 +338,7 @@ class UniqueObjectIndex(WrapsUniqueClcass):
         for obj in self.objects:
             yield self.get(obj.name)
 
-    def __nonzero__(self):
+    def __nonzero__(self) -> bool:
         """
         Boolish conversion that depends on the number of objects in the index.
         """
@@ -470,7 +470,7 @@ class UniqueObjectIndex(WrapsUniqueClcass):
                 # remember the position of the object
                 idx = self.objects.index(_obj)
 
-                # materializee
+                # materialize
                 with _obj.materialize(self) as _obj:
                     # add back the materialized object
                     self.objects[idx] = _obj
@@ -489,20 +489,26 @@ class UniqueObjectIndex(WrapsUniqueClcass):
         Returns the first object of this index. If no object could be found, *default* is returned
         if set. An exception is raised otherwise.
         """
-        if not self.objects and default != no_value:
+        if self.objects:
+            return self.get(self.objects[0].name)
+
+        if default != no_value:
             return default
 
-        return self.get(self.objects[0].name)
+        raise Exception(f"cannot return first object, '{self}' is empty")
 
     def get_last(self, default: T = no_value) -> UniqueObject | T:
         """
         Returns the last object of this index. If no object could be found, *default* is returned if
         set. An exception is raised otherwise.
         """
-        if not self.objects and default != no_value:
+        if self.objects:
+            return self.get(self.objects[-1].name)
+
+        if default != no_value:
             return default
 
-        return self.get(self.objects[-1].name)
+        raise Exception(f"cannot return last object, '{self}' is empty")
 
     def add(
         self,
