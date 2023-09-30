@@ -16,20 +16,19 @@ import json
 import shutil
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod, abstractproperty
-from typing import Any, Sequence, Dict
-from types import GeneratorType
 
 from pydantic import BaseModel
 
+from order.types import Any, Sequence, Dict, GeneratorType, NonEmptyStrictStr, StrictStr, Field
 from order.settings import Settings
 from order.util import create_hash
 
 
 class AdapterModel(BaseModel):
 
-    adapter: str
-    arguments: Dict[str, Any]
-    key: str
+    adapter: NonEmptyStrictStr
+    key: StrictStr
+    arguments: Dict[NonEmptyStrictStr, Any] = Field(default_factory=lambda: {})
 
     @property
     def name(self) -> str:
@@ -194,17 +193,24 @@ class DataProvider(object):
             shutil.rmtree(self.cache_directory)
 
     @contextmanager
-    def materialize(self, adapter_model: AdapterModel | dict[str, Any]) -> GeneratorType:
+    def materialize(
+        self,
+        adapter_model: AdapterModel | dict[str, Any],
+        adapter_kwargs: dict[str, Any] | None = None,
+    ) -> GeneratorType:
         if not isinstance(adapter_model, AdapterModel):
             adapter_model = AdapterModel(**adapter_model)
 
         # get the adapter class and instantiate it
         adapter = AdapterMeta.get_cls(adapter_model.name)()
 
+        # merge kwargs
+        adapter_kwargs = {**adapter_model.arguments, **(adapter_kwargs or {})}
+
         # determine the basename of the cache file (if existing)
         h = (
             os.path.realpath(self.data_location),
-            adapter.get_cache_key(**adapter_model.arguments),
+            adapter.get_cache_key(**adapter_kwargs),
         )
         cache_name = f"{create_hash(h)}.json"
 
@@ -220,7 +226,7 @@ class DataProvider(object):
 
         # invoke the adapter
         args = (self.data_location,) if adapter.needs_data_location else ()
-        materialized = adapter.retrieve_data(*args, **adapter_model.arguments)
+        materialized = adapter.retrieve_data(*args, **adapter_kwargs)
 
         # complain when the return value is not a materialized container
         if not isinstance(materialized, Materialized):
@@ -232,10 +238,8 @@ class DataProvider(object):
         # yield the materialized data and cache it if the receiving context did not raise
         try:
             yield materialized
-        except Exception as e:
-            if isinstance(e, self.SkipCaching):
-                return
-            raise e
+        except self.SkipCaching:
+            return
 
         # cache it
         if writable_path:

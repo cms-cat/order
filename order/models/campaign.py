@@ -10,10 +10,9 @@ from __future__ import annotations
 __all__ = ["GT", "Campaign"]
 
 
-from typing import Dict
-
-from order.models.base import Model, Lazy
-from order.models.dataset import Dataset
+from order.types import Lazy, Field
+from order.models.base import Model
+from order.models.dataset import DatasetIndex
 
 
 class GT(Model):
@@ -28,4 +27,4 @@ class Campaign(Model):
     tier: Lazy[str]
     ecm: Lazy[float]
     recommended_gt: GT
-    datasets: Lazy[Dict[str, Dataset]]
+    datasets: DatasetIndex = Field(default_factory=DatasetIndex)

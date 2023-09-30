@@ -12,8 +12,8 @@ __all__ = ["Settings"]
 
 import os
 import re
-from typing import Any
 
+from order.types import T
 from order.util import no_value
 
 
@@ -28,7 +28,7 @@ class Settings(object):
         return cls.__instance
 
     @classmethod
-    def get_env(cls, name: str, default: Any = no_value) -> Any:
+    def get_env(cls, name: str, default: T = no_value) -> T:
         if name not in os.environ:
             if default != no_value:
                 return default

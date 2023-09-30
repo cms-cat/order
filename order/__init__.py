@@ -10,7 +10,7 @@ __all__ = [
     "Settings",
     "Lazy", "Model",
     "AdapterModel", "Adapter", "Materialized", "DataProvider",
-    "UniqueObject", "UniqueObjectIndex",
+    "UniqueObject", "LazyUniqueObject", "UniqueObjectIndex",
     "DuplicateObjectException", "DuplicateNameException", "DuplicateIdException",
 ]
 
@@ -23,14 +23,18 @@ from order.__meta__ import (
 
 # provisioning imports
 from order.settings import Settings
-from order.models.base import Lazy, Model
+from order.types import Lazy
+from order.models.base import Model
 from order.models.unique import (
-    UniqueObject, UniqueObjectIndex, DuplicateObjectException, DuplicateNameException,
-    DuplicateIdException,
+    UniqueObject, LazyUniqueObject, UniqueObjectIndex, DuplicateObjectException,
+    DuplicateNameException, DuplicateIdException,
 )
+from order.models.campaign import Campaign
+from order.models.dataset import Dataset
 from order.adapters.base import AdapterModel, Adapter, Materialized, DataProvider
 
 # import adapters to trigger their registration
 import order.adapters.order
-import order.adapters.dbs
-import order.adapters.xsdb
+import order.adapters.das
+# import order.adapters.dbs
+# import order.adapters.xsdb
