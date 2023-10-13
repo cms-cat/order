@@ -7,15 +7,15 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout ⬇️
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
       - name: Setup python 🐍
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
+
+      - name: Checkout ⬇️
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install dependencies ☕️
         run: |

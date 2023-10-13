@@ -53,6 +53,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version:
           - "3.7"
@@ -95,12 +96,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Checkout order-data 📊
-        uses: actions/checkout@v4
-        with:
-          name: cms-cat/order-data
-          persist-credentials: false
-
       - name: Install dependencies ☕️
         run: |
           pip install -U pip setuptools
@@ -108,8 +103,6 @@ jobs:
 
       - name: Run coverage test 🎢
         run: |
-          export ORDER_DATA_LOCATION="${PWD}/order-data"
-          export ORDER_COLORS="False"
           pytest --cov=order --cov-report xml:coverage.xml tests
 
       - name: Upload report 🔝
