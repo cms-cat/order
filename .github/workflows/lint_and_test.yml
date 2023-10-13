@@ -8,15 +8,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout ⬇️
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
       - name: Setup python 🐍
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
+
+      - name: Checkout ⬇️
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install dependencies ☕️
         run: |
@@ -29,15 +29,15 @@ jobs:
   pypi:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout ⬇️
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
       - name: Setup python 🐍
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
+
+      - name: Checkout ⬇️
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install dependencies ☕️
         run: |
@@ -63,6 +63,11 @@ jobs:
           - "3.12"
     name: test (python ${{ matrix.python-version }})
     steps:
+      - name: Setup Python ${{ matrix.python-version }} 🐍
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Checkout ⬇️
         uses: actions/checkout@v4
         with:
@@ -74,11 +79,6 @@ jobs:
           name: cms-cat/order-data
           persist-credentials: false
 
-      - name: Setup Python ${{ matrix.python-version }} 🐍
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
       - name: Install dependencies ☕️
         run: |
           pip install -U pip setuptools
@@ -86,7 +86,6 @@ jobs:
 
       - name: Test 🎢
         run: |
-          ls -al
           export ORDER_DATA_LOCATION="${PWD}/order-data"
           export ORDER_COLORS="False"
           ./tests/test.sh
@@ -94,11 +93,21 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup python 🐍
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
       - name: Checkout ⬇️
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          submodules: recursive
+
+      - name: Checkout order-data 📊
+        uses: actions/checkout@v4
+        with:
+          name: cms-cat/order-data
+          persist-credentials: false
 
       - name: Install dependencies ☕️
         run: |
@@ -107,6 +116,8 @@ jobs:
 
       - name: Run coverage test 🎢
         run: |
+          export ORDER_DATA_LOCATION="${PWD}/order-data"
+          export ORDER_COLORS="False"
           pytest --cov=order --cov-report xml:coverage.xml tests
 
       - name: Upload report 🔝
