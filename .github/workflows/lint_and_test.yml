@@ -68,6 +68,12 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Checkout order-data 📊
+        uses: actions/checkout@v4
+        with:
+          name: cms-cat/order-data
+          persist-credentials: false
+
       - name: Setup Python ${{ matrix.python-version }} 🐍
         uses: actions/setup-python@v4
         with:
@@ -79,7 +85,11 @@ jobs:
           pip install .[dev]
 
       - name: Test 🎢
-        run: ./tests/test.sh
+        run: |
+          ls -al
+          export ORDER_DATA_LOCATION="${PWD}/order-data"
+          export ORDER_COLORS="False"
+          ./tests/test.sh
 
   coverage:
     runs-on: ubuntu-latest

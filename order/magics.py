@@ -72,7 +72,8 @@ def register_magics(*args, **kwargs) -> None:
     try:
         ipy = get_ipython()
     except NameError:
-        print("no running notebook kernel found")
+        # print("no running notebook kernel found")
+        pass
 
     # create the magics
     if ipy:
