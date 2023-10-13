@@ -11,14 +11,27 @@ from __future__ import annotations
 __all__ = []
 
 
+# warn when imported while _in_ this directory
+import os
+thisdir = os.path.dirname(os.path.abspath(__file__))
+if os.path.realpath(thisdir) == os.path.realpath(os.getcwd()):
+    msg = """
+NOTE: you are running a python interpreter inside the "order" source directory which
+      is highly discouraged as it leads to unintended local imports in builtin packages
+"""
+    print(msg, flush=True)
+
+
 import re
 from collections.abc import KeysView, ValuesView  # noqa
-from typing import Any, Union, TypeVar, ClassVar, List, Tuple, Sequence, Set, Dict, Callable  # noqa
+from typing import (  # noqa
+    Any, Union, TypeVar, ClassVar, List, Tuple, Sequence, Set, Dict, Callable, Iterable, Generator,
+)
 from types import GeneratorType  # noqa
 
 from typing_extensions import Annotated, _AnnotatedAlias as AnnotatedType  # noqa
 from annotated_types import Ge, Len  # noqa
-from pydantic import Field, Strict, StrictInt, StrictFloat, StrictStr  # noqa
+from pydantic import Strict, StrictInt, StrictFloat, StrictStr, StrictBool  # noqa
 from pydantic.fields import FieldInfo  # noqa
 
 
@@ -40,7 +53,7 @@ class Lazy(object):
 
     @classmethod
     def __class_getitem__(cls, types: tuple[type]) -> type:
-        from order.adapters.base import AdapterModel
+        from order.models.base import AdapterModel
 
         if not isinstance(types, tuple):
             types = (types,)
