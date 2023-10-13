@@ -73,12 +73,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Checkout order-data 📊
-        uses: actions/checkout@v4
-        with:
-          name: cms-cat/order-data
-          persist-credentials: false
-
       - name: Install dependencies ☕️
         run: |
           pip install -U pip setuptools
@@ -86,8 +80,6 @@ jobs:
 
       - name: Test 🎢
         run: |
-          export ORDER_DATA_LOCATION="${PWD}/order-data"
-          export ORDER_COLORS="False"
           ./tests/test.sh
 
   coverage:
