@@ -81,6 +81,10 @@ class Settings(object):
     def get_user_proxy(cls) -> str:
         return cls.get_env("X509_USER_PROXY", f"/tmp/x509up_u{os.getuid()}")
 
+    @classmethod
+    def get_colors(cls) -> bool:
+        return cls.flag_to_bool(cls.get_env("ORDER_COLORS", True))
+
     def __init__(self):
         super().__init__()
 
@@ -91,3 +95,12 @@ class Settings(object):
         self.clear_cache: bool = self.get_clear_cache()
         self.cache_only: bool = self.get_cache_only()
         self.user_proxy: str = self.get_user_proxy()
+        self.colors: bool = self.get_colors()
+
+
+# register convenience functions on module-level
+inst = Settings.instance()
+for attr, value in inst.__dict__.items():
+    if attr.startswith("_"):
+        continue
+    locals()[attr] = value
