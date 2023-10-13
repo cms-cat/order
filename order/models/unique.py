@@ -687,11 +687,7 @@ class UniqueObjectIndex(WrapsUniqueClass):
         if obj.id in self._id_index:
             if not overwrite:
                 raise DuplicateIdException(self.cls, obj.id, self)
-            try:
-                self.remove(obj.id)
-            except:
-                import traceback; traceback.print_exc()
-                from IPython import embed; embed()
+            self.remove(obj.id)
 
         # add to objects and indices
         self.objects.append(obj)

@@ -6,8 +6,6 @@ from __future__ import annotations
 __all__ = ["ProcessIndex", "Process", "LazyProcess"]
 
 
-import copy
-
 from pydantic import Field
 
 from order.types import (
