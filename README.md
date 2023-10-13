@@ -14,18 +14,18 @@
   <a href="http://cms-order.readthedocs.io/en/latest">
     <img alt="Documentation status" src="https://readthedocs.org/projects/cms-order/badge/?version=latest" />
   </a>
-  <a href="https://github.com/cms-cat/order/actions/workflows/lint_and_test.yml">
-    <img alt="Lint and test" src="https://github.com/cms-cat/order/actions/workflows/lint_and_test.yml/badge.svg" />
-  </a>
-  <a href="https://codecov.io/gh/cms-cat/order">
-    <img alt="Code coverge" src="https://codecov.io/gh/cms-cat/order/branch/master/graph/badge.svg?token=JF7BVTNB2Y" />
-  </a>
   <img alt="Python version" src="https://img.shields.io/badge/Python-%E2%89%A53.7-blue" />
   <a href="https://pypi.python.org/pypi/order">
     <img alt="Package version" src="https://img.shields.io/pypi/v/order.svg?style=flat" />
   </a>
   <a href="https://github.com/cms-cat/order/blob/master/LICENSE">
     <img alt="License" src="https://img.shields.io/github/license/cms-cat/order.svg" />
+  </a>
+  <a href="https://github.com/cms-cat/order/actions/workflows/lint_and_test.yml">
+    <img alt="Lint and test" src="https://github.com/cms-cat/order/actions/workflows/lint_and_test.yml/badge.svg" />
+  </a>
+  <a href="https://codecov.io/gh/cms-cat/order">
+    <img alt="Code coverge" src="https://codecov.io/gh/cms-cat/order/branch/master/graph/badge.svg?token=JF7BVTNB2Y" />
   </a>
   <a href="https://colab.research.google.com/github/cms-cat/order/blob/master/examples/intro.ipynb">
     <img alt="Open in colab" src="https://colab.research.google.com/assets/colab-badge.svg" />
