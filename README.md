@@ -56,7 +56,7 @@ You can find the full [API documentation on readthedocs](http://python-order.rea
 
 <!-- marker-before-installation -->
 
-# Installation and dependencies
+# Installation
 
 Install *order* via [pip](https://pypi.python.org/pypi/order):
 
