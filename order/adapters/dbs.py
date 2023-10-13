@@ -8,7 +8,7 @@ __all__ = ["DBSFilesAdapter"]
 
 import requests
 
-from order.settings import Settings
+import order.settings as settings
 from order.adapters.base import Adapter, Materialized
 
 
@@ -20,7 +20,7 @@ class DBSFilesAdapter(Adapter):
         resource = f"https://cmsweb.cern.ch:8443/dbs/{dbs_instance}/DBSReader/files?dataset={dataset_key}&detail=True"  # noqa
         r = requests.get(
             resource,
-            cert=Settings.instance().user_proxy,
+            cert=settings.user_proxy,
             verify=False,
         )
         return Materialized(data=r.json())

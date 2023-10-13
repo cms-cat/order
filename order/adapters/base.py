@@ -7,7 +7,7 @@ Base class definitions for adapters and the overarching data provider for cached
 from __future__ import annotations
 
 
-__all__ = ["AdapterModel", "Adapter", "Materialized", "DataProvider"]
+__all__ = ["Adapter", "Materialized", "DataProvider"]
 
 
 import os
@@ -17,25 +17,9 @@ import shutil
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-from pydantic import BaseModel
-
-from order.types import Any, Sequence, Dict, GeneratorType, NonEmptyStrictStr, StrictStr, Field
-from order.settings import Settings
+import order.settings as settings
+from order.types import Any, Sequence, Generator
 from order.util import create_hash
-
-
-class AdapterModel(BaseModel):
-
-    adapter: NonEmptyStrictStr
-    key: StrictStr
-    arguments: Dict[NonEmptyStrictStr, Any] = Field(default_factory=dict)
-
-    def compare_signature(self, other: "AdapterModel") -> bool:
-        return (
-            isinstance(other, AdapterModel) and
-            other.adapter == self.adapter and
-            other.arguments == self.arguments
-        )
 
 
 class AdapterMeta(ABCMeta):
@@ -74,6 +58,7 @@ class AdapterMeta(ABCMeta):
     def get_cls(cls, name: str) -> "AdapterMeta":
         if not cls.has_cls(name):
             raise KeyError(f"unknown adapter '{name}'")
+
         return cls.adapters[name]
 
 
@@ -149,7 +134,6 @@ class DataProvider(object):
         Singleton constructor and getter.
         """
         if cls.__instance is None:
-            settings = Settings.instance()
             cls.__instance = cls(
                 data_location=settings.data_location,
                 cache_directory=settings.cache_directory,
@@ -191,9 +175,9 @@ class DataProvider(object):
     @contextmanager
     def materialize(
         self,
-        adapter_model: AdapterModel | dict[str, Any],
+        adapter_model: "AdapterModel" | dict[str, Any],
         adapter_kwargs: dict[str, Any] | None = None,
-    ) -> GeneratorType:
+    ) -> Generator[Materialized, None, None]:
         if not isinstance(adapter_model, AdapterModel):
             adapter_model = AdapterModel(**adapter_model)
 
@@ -217,7 +201,7 @@ class DataProvider(object):
             return
 
         # in cache-only mode, this point should not be reached
-        if Settings.instance().cache_only:
+        if settings.cache_only:
             raise Exception(f"adapter '{adapter.name}' cannot be evaluated in cache-only mode")
 
         # invoke the adapter
@@ -265,3 +249,7 @@ class DataProvider(object):
     def read_cache(self, path: str) -> Materialized:
         with open(path, "r") as f:
             return Materialized(json.load(f))
+
+
+# trailing imports
+from order.models.base import AdapterModel
