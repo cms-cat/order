@@ -14,6 +14,7 @@ import os
 import re
 import json
 import shutil
+from datetime import datetime, timezone
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod, abstractproperty
 
@@ -187,15 +188,8 @@ class DataProvider(object):
         # merge kwargs
         adapter_kwargs = {**adapter_model.arguments, **(adapter_kwargs or {})}
 
-        # determine the basename of the cache file (if existing)
-        h = (
-            os.path.realpath(self.data_location),
-            adapter.get_cache_key(**adapter_kwargs),
-        )
-        cache_name = f"{create_hash(h)}.json"
-
         # when cached, read the cached object instead
-        readable_path, writable_path, cached = self.check_cache(cache_name)
+        readable_path, writable_path, cached = self.check_cache(adapter, adapter_kwargs)
         if cached:
             yield self.read_cache(readable_path)
             return
@@ -225,15 +219,64 @@ class DataProvider(object):
         if writable_path:
             self.write_cache(writable_path, materialized)
 
-    def check_cache(self, cache_name: str) -> [str, str, bool]:
-        # check the writable (default) cache directory
-        writable_path = os.path.join(self.cache_directory, cache_name)
-        if os.path.exists(writable_path):
+    def check_cache(
+        self,
+        adapter: Adapter,
+        adapter_kwargs: dict[str, Any],
+        lifetime: int = 86400,  # TODO: let adapter or main settings control this
+    ) -> [str, str, bool]:
+        # create a unique hash
+        h = create_hash((
+            os.path.realpath(self.data_location),
+            adapter.get_cache_key(**adapter_kwargs),
+        ))
+
+        # helper to find a cached file in a directory with the largest timestamp and to invalidate
+        # too old ones
+        cre = re.compile(rf"^{h}(|_\d+)\.json$")
+
+        def find(directory: str, ts: int, invalidate: bool) -> str | None:
+            files = {
+                int(m.group(1)[1:] or 0): os.path.join(directory, elem)
+                for elem in os.listdir(directory)
+                if (m := cre.match(elem))
+            }
+
+            # return none when no cached files were found
+            if not files:
+                return None
+
+            # pick the file with the longest remaining lifetime
+            best_ts = 0 if 0 in files else max((_ts for _ts in files if _ts >= ts), default=-1)
+
+            # invalidate all other files
+            if invalidate:
+                for _ts, path in files.items():
+                    if _ts != best_ts:
+                        try:
+                            os.remove(path)
+                            print("invalidated", path)
+                        except:
+                            pass
+
+            return files[best_ts] if best_ts >= 0 else None
+
+        # get a utc timestamp
+        ts = round(datetime.now(timezone.utc).timestamp())
+
+        # check the writable default cache directory
+        writable_path = find(self.cache_directory, ts, True)
+        if writable_path:
             return writable_path, writable_path, True
 
+        # create a writable path in the default cache directory
+        ts_postfix = "" if lifetime <= 0 else f"_{ts + lifetime}"
+        writable_path = os.path.join(self.cache_directory, f"{h}{ts_postfix}.json")
+
+        # check readable directories
         for readonly_cache_directory in self.readonly_cache_directories:
-            readable_path = os.path.join(readonly_cache_directory, cache_name)
-            if os.path.exists(readable_path):
+            readable_path = find(readonly_cache_directory, ts, False)
+            if readable_path:
                 return readable_path, writable_path, True
 
         return writable_path, writable_path, False

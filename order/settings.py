@@ -17,6 +17,14 @@ from order.types import T
 from order.util import no_value
 
 
+# update env variables
+_on_gh = bool(os.getenv("GITHUB_ACTION"))
+_on_rtd = bool(os.getenv("READTHEDOCS"))
+if _on_gh or _on_rtd:
+    os.environ.setdefault("ORDER_DATA_LOCATION", os.getcwd())
+    os.environ["ORDER_COLORS"] = "False"
+
+
 class Settings(object):
 
     __instance = None
