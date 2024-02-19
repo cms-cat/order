@@ -56,9 +56,13 @@ class Campaign(UniqueObject):
         dataset.campaign = self
 
     def _dataset_add_callback(self, dataset: LazyDataset | Dataset) -> None:
-        if isinstance(dataset, Dataset):
-            dataset.campaign = self
+        if not isinstance(dataset, Dataset):
+            return
+
+        dataset.campaign = self
 
     def _dataset_remove_callback(self, dataset: LazyDataset | Dataset) -> None:
-        if isinstance(dataset, Dataset):
-            dataset.campaign = None
+        if not isinstance(dataset, Dataset):
+            return
+
+        dataset.campaign = None

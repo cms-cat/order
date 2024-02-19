@@ -11,10 +11,10 @@ import enum
 from pydantic import Field, field_validator
 
 from order.types import (
-    Union, List, Dict, NonEmptyStrictStr, PositiveStrictInt, Lazy, ClassVar, GeneratorType,
+    Union, List, Dict, NonEmptyStrictStr, PositiveStrictInt, Lazy, ClassVar, GeneratorType, Any,
 )
-from order.util import validated
-from order.models.base import Model
+# from order.util import validated
+from order.models.base import Model, AdapterModel
 from order.models.unique import UniqueObjectBase, UniqueObject, LazyUniqueObject, UniqueObjectIndex
 
 
@@ -84,45 +84,17 @@ class DatasetVariation(Model):
 
 class Dataset(UniqueObject):
 
+    campaign: Lazy["Campaign"]
     variations: Dict[str, DatasetVariation] = Field(frozen=True)
 
     lazy_cls: ClassVar[UniqueObjectBase] = LazyDataset
 
-    @validated(default=None)
-    def campaign(self, campaign: "Campaign" | None) -> "Campaign":
-        # do nothing when the previous campaign matches the new one
-        if campaign == self.campaign:
-            return campaign
-
-        # deregister from previous campaign
-        if self.campaign:
-            self.campaign.datasets.remove(self, skip_callback=True)
-
-        # None case
-        if campaign is None:
-            return campaign
-
-        # type check
-        if not isinstance(campaign, Campaign):
-            raise TypeError(f"expected Campaign object, but got '{campaign}'")
-
-        # add to the index if not already in there
-        if self not in campaign.datasets:
-            campaign.datasets.add(self, skip_callback=True)
-
-        return campaign
-
     def __getitem__(self, name: str) -> DatasetVariation:
         return self.get_info(name)
 
-    def __repr_args__(self, verbose: bool = False, adapters: bool = False) -> GeneratorType:
-        """
-        Yields all key-values pairs to be injected into the representation.
-        """
-        yield from super().__repr_args__(verbose=verbose, adapters=adapters)
-
-        if self.campaign:
-            yield "campaign", self.campaign.name
+    def on_materialize(self, attr: str, value: Any, adapter_model: AdapterModel) -> None:
+        if attr == "campaign":
+            value.datasets.add(self, overwrite=True, skip_callback=True)
 
     def get_variation(self, name: str) -> DatasetVariation:
         return self.variations[name]

@@ -26,6 +26,41 @@ class OrderAdapter(Adapter):
     needs_data_location = True
 
 
+class CampaignAdapter(OrderAdapter):
+
+    name = "order_campaign"
+
+    def retrieve_data(
+        self,
+        data_location: str,
+        *,
+        campaign_name: str,
+    ) -> Materialized:
+        # only supporting local evaluation for now
+        if not self.location_is_local(data_location):
+            raise NotImplementedError(f"non-local location {data_location} not handled by {self!r}")
+
+        # build the yaml file path
+        path = os.path.join(
+            self.remove_scheme(data_location),
+            "campaigns",
+            f"{campaign_name}.yaml",
+        )
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"campaign file {path} does not exist")
+
+        # open the file and look for the campaign
+        with open(path, "r") as f:
+            stream = yaml.load_all(f, Loader=yaml.SafeLoader)
+            for entry in stream:
+                if entry.get("name") == campaign_name:
+                    return Materialized(campaign=entry)
+                # only one campaign per file allowed
+                break
+
+        raise Exception(f"no campaign entry with name '{campaign_name}' found in {path}")
+
+
 class DatasetsAdapter(OrderAdapter):
 
     name = "order_datasets"

@@ -92,7 +92,10 @@ class Lazy(object):
 
     @classmethod
     def can_make_strict(cls, type_: type) -> bool:
-        if type_.__dict__.get("_name") in ("Dict", "List"):
+        if (
+            getattr(type_, "__dict__", None) is not None and
+            type_.__dict__.get("_name") in ("Dict", "List")
+        ):
             return False
 
         return True

@@ -133,9 +133,15 @@ class ModelMeta(type(PDBaseModel)):
                     # set the value
                     setattr(self, lazy_attr_, materialized[adapter_model_.key])
 
+                    # get back the now instantiated value
+                    value_ = getattr(self, lazy_attr_)
+
+                    # invoke the on_materialize hook
+                    self.on_materialize(attr_, value_, adapter_model_)
+
                     # assign it to the return value for the requested attribute
                     if attr_ == attr:
-                        value = getattr(self, lazy_attr_)
+                        value = value_
 
             # complain if the return value was not set
             if value == no_value:
@@ -347,3 +353,9 @@ class Model(BaseModel, metaclass=ModelMeta):
                 value = self.__repr_adapter__(value)
 
             yield attr, value
+
+    def on_materialize(self, attr: str, value: Any, adapter_model: AdapterModel) -> None:
+        """
+        A custom hook that gets invoked when a lazy attribute is materialized.
+        """
+        return

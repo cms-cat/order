@@ -186,7 +186,7 @@ class validated(property):
 
     .. code-block:: python
 
-         class MyClass(object):
+        class MyClass(object):
 
             def __init__(self):
                 self._foo: str = None
