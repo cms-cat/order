@@ -9,7 +9,7 @@ __all__ = ["ProcessIndex", "Process", "LazyProcess"]
 from pydantic import Field
 
 from order.types import (
-    Union, List, Dict, NonEmptyStrictStr, Lazy, ClassVar, Any, StrictFloat,
+    Union, List, Dict, NonEmptyStrictStr, Lazy, ClassVar, StrictFloat,
 )
 from order.util import has_attr
 from order.models.unique import UniqueObjectBase, UniqueObject, LazyUniqueObject, UniqueObjectIndex
@@ -49,8 +49,16 @@ class Process(UniqueObject):
         default_factory=dict,
         frozen=True,
     )
-    processes: ProcessIndex = Field(default_factory=ProcessIndex, frozen=True)
-    parent_processes: ProcessIndex = Field(default_factory=ProcessIndex, frozen=True)
+    processes: ProcessIndex = Field(
+        default_factory=ProcessIndex,
+        frozen=True,
+    )
+    parent_processes: ProcessIndex = Field(
+        default_factory=ProcessIndex,
+        frozen=True,
+        # exclude from exports to avoid circular references
+        exclude=True,
+    )
 
     lazy_cls: ClassVar[UniqueObjectBase] = LazyProcess
 
@@ -96,33 +104,6 @@ class Process(UniqueObject):
         # initially invoke the "add" callback for all objects in the index
         for parent_process in self.parent_processes.objects:
             self._parent_process_add_callback(parent_process)
-
-    def __copy__(self) -> "Process":
-        copied = super().__copy__()
-
-        # TODO: handle cross sections here after above TODOs are resolved
-
-        # drop references to child and parent processes for consistency
-        with copied._unfreeze_field("processes"):
-            copied.processes = copied.model_fields["processes"].default_factory()
-
-        with copied._unfreeze_field("parent_processes"):
-            copied.parent_processes = copied.model_fields["parent_processes"].default_factory()
-
-        # setup objects if not triggered by model_copy
-        if not self._copy_triggered_by_model:
-            copied._setup_objects()
-
-        return copied
-
-    def __deepcopy__(self, memo: dict[int, Any] | None = None) -> Process:
-        copied = super().__deepcopy__(memo=memo)
-
-        # setup objects if not triggered by model_copy
-        if not self._copy_triggered_by_model:
-            copied._setup_objects()
-
-        return copied
 
     def _process_materialize_callback(self, process: "Process") -> None:
         process.parent_processes.add(self, overwrite=True)

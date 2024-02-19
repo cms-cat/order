@@ -6,9 +6,7 @@ Custom base models and types for lazy evaluation.
 
 from __future__ import annotations
 
-
 __all__ = ["BaseModel", "Model", "AdapterModel"]
-
 
 from contextlib import contextmanager
 
@@ -168,10 +166,6 @@ class BaseModel(PDBaseModel):
     def __init__(self: BaseModel, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        # flag that is True for the duration of the model_copy base call to better control __copy__
-        # and __deepcopy__ depending on whether mode_copy or another object triggered the copy
-        self._copy_triggered_by_model = False
-
         # setup objects
         self._setup_objects()
 
@@ -236,35 +230,6 @@ class BaseModel(PDBaseModel):
 
     def __repr_circular__(self) -> str:
         return self.__class__.__name__
-
-    def model_copy(
-        self,
-        *,
-        update: dict[str, Any] | None = None,
-        deep: bool = False,
-    ) -> "BaseModel":
-        # set the copy flag since model_copy triggered the copy
-        orig_copy_flag = self._copy_triggered_by_model
-        self._copy_triggered_by_model = True
-
-        # super call
-        copied = super().model_copy(update=update, deep=deep)
-
-        # reset the copy flag of _this_ and the copied instance
-        copied._copy_triggered_by_model = orig_copy_flag
-        self._copy_triggered_by_model = orig_copy_flag
-
-        # the copied instance already contains updated variables, but pydantic does not re-validate
-        # them, so we need to do this manually here
-        if update:
-            for f, v in update.items():
-                with copied._unfreeze_field(f):
-                    setattr(copied, f, v)
-
-        # setup objects
-        copied._setup_objects()
-
-        return copied
 
     def model_show(
         self,

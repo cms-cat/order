@@ -6,7 +6,7 @@ Pythonic class collection to structure and access CMS metadata.
 
 __author__ = "CMS Collaboration"
 __email__ = "marcel.rieger@cern.ch"
-__copyright__ = "Copyright 2023, CMS Collaboration"
+__copyright__ = "Copyright 2023-2024, CMS Collaboration"
 __credits__ = ["Marcel Rieger", "Davide Valsecchi"]
 __contact__ = "https://github.com/cms-cat/order"
 __license__ = "BSD-3-Clause"

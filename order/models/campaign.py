@@ -12,7 +12,7 @@ __all__ = ["Campaign"]
 
 from pydantic import Field
 
-from order.types import Lazy, NonEmptyStrictStr, StrictFloat, Any
+from order.types import Lazy, NonEmptyStrictStr, StrictFloat
 from order.util import has_attr
 from order.models.unique import UniqueObject
 from order.models.dataset import DatasetIndex, Dataset, LazyDataset
@@ -51,28 +51,6 @@ class Campaign(UniqueObject):
         # initially invoke the "add" callback for all objects in the index
         for dataset in self.datasets.objects:
             self._dataset_add_callback(dataset)
-
-    def __copy__(self) -> Campaign:
-        copied = super().__copy__()
-
-        # drop references to datasets for consistency as they still point to the original campaign
-        with copied._unfreeze_field("datasets"):
-            copied.datasets = copied.model_fields["datasets"].default_factory()
-
-        # setup objects if not triggered by model_copy
-        if not self._copy_triggered_by_model:
-            copied._setup_objects()
-
-        return copied
-
-    def __deepcopy__(self, memo: dict[int, Any] | None = None) -> Campaign:
-        copied = super().__deepcopy__(memo=memo)
-
-        # setup objects if not triggered by model_copy
-        if not self._copy_triggered_by_model:
-            copied._setup_objects()
-
-        return copied
 
     def _dataset_materialize_callback(self, dataset: Dataset) -> None:
         dataset.campaign = self

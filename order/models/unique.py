@@ -6,12 +6,10 @@ Models definitions of unique objects and an index container to access them.
 
 from __future__ import annotations
 
-
 __all__ = [
     "UniqueObject", "LazyUniqueObject", "UniqueObjectIndex",
     "DuplicateObjectException", "DuplicateNameException", "DuplicateIdException",
 ]
-
 
 from abc import abstractmethod
 from contextlib import contextmanager
@@ -242,7 +240,7 @@ class LazyUniqueObject(UniqueObjectBase, WrapsUniqueClass):
     @abstractmethod
     def create_lazy_dict(cls) -> dict[str, Any]:
         # must be implemented by subclasses
-        return
+        ...
 
     @classmethod
     def create(cls, *args, **kwargs) -> "LazyUniqueObject":
@@ -367,25 +365,6 @@ class UniqueObjectIndex(WrapsUniqueClass):
 
         # sync indices initially
         self._sync_indices()
-
-    def __copy__(self) -> "UniqueObjectIndex":
-        inst = super().__copy__()
-
-        # make a copy of the objects list
-        inst.objects = list(inst.objects)
-
-        # fully reset indices
-        self._reset_indices()
-
-        return inst
-
-    def __deepcopy__(self, memo: dict[int, Any] | None = None) -> "UniqueObjectIndex":
-        inst = super().__deepcopy__(memo=memo)
-
-        # fully reset indices
-        self._reset_indices()
-
-        return inst
 
     def __len__(self) -> int:
         """

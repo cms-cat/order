@@ -13,7 +13,6 @@ __all__ = [
     "Adapter", "Materialized", "DataProvider",
     "UniqueObject", "LazyUniqueObject", "UniqueObjectIndex",
     "DuplicateObjectException", "DuplicateNameException", "DuplicateIdException",
-    "CopyMixin",
     "ProcessIndex", "Process", "LazyProcess",
     "DatasetIndex", "Dataset", "LazyDataset", "DatasetVariation", "GenOrder",
     "Campaign",
@@ -35,7 +34,6 @@ from order.models.unique import (
     UniqueObject, LazyUniqueObject, UniqueObjectIndex, DuplicateObjectException,
     DuplicateNameException, DuplicateIdException,
 )
-from order.models.mixins import CopyMixin
 from order.models.process import ProcessIndex, Process, LazyProcess
 from order.models.dataset import DatasetIndex, Dataset, LazyDataset, DatasetVariation, GenOrder
 from order.models.campaign import Campaign
