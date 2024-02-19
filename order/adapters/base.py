@@ -91,7 +91,7 @@ class Adapter(object, metaclass=AdapterMeta):
         return
 
     def get_cache_key(self, **kwargs) -> tuple:
-        return tuple(
+        return (self.name,) + tuple(
             (
                 key,
                 self.get_cache_key(**kwargs[key]) if isinstance(kwargs[key], dict) else kwargs[key],
