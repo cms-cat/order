@@ -5,39 +5,70 @@ on:
   push:
 
 jobs:
-  lint:
+  linting:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup python 🐍
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      - name: Checkout ⬇️
+      - name: Checkout 🛎️
         uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Install dependencies ☕️
-        run: |
-          pip install -U pip setuptools
-          pip install .[dev]
+        run: pip install .[dev]
 
       - name: Lint 🔍
-        run: ./tests/lint.sh
+        run: ./tests/linting.sh
+
+  typecheck:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["38", "39", "310", "311"]
+    name: typecheck (python ${{ matrix.python }})
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies ☕️
+        run: pip install .[dev]
+
+      - name: Typecheck 📋
+        run: ./tests/typecheck.sh
+
+  unittest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["37", "38", "39", "310", "311"]
+    name: unittest (python ${{ matrix.python }})
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies ☕️
+        run: pip install .[dev]
+
+      - name: Test 🎢
+        run: ./tests/unittest.sh
 
   pypi:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup python 🐍
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      - name: Checkout ⬇️
+      - name: Checkout 🛎️
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      - name: Setup python 🐍
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
 
       - name: Install dependencies ☕️
         run: |
@@ -50,64 +81,25 @@ jobs:
       - name: Check setup 🚦
         run: twine check "dist/order-*.tar.gz"
 
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version:
-          - "3.7"
-          - "3.8"
-          - "3.9"
-          - "3.10"
-          - "3.11"
-          - "3.12"
-    name: test (python ${{ matrix.python-version }})
-    steps:
-      - name: Setup Python ${{ matrix.python-version }} 🐍
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Checkout ⬇️
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Install dependencies ☕️
-        run: |
-          pip install -U pip setuptools
-          pip install .[dev]
-
-      - name: Test 🎢
-        run: |
-          ./tests/test.sh
-
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup python 🐍
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
       - name: Checkout ⬇️
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          submodules: recursive
 
       - name: Install dependencies ☕️
-        run: |
-          pip install -U pip setuptools
-          pip install .[dev]
+        run: pip install .[dev]
 
       - name: Run coverage test 🎢
-        run: |
-          pytest --cov=order --cov-report xml:coverage.xml tests
+        run: ./tests/coverage.sh
 
       - name: Upload report 🔝
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           flags: unittests
+          fail_ci_if_error: false

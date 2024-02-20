@@ -233,12 +233,11 @@ class DataProvider(object):
 
         # helper to find a cached file in a directory with the largest timestamp and to invalidate
         # too old ones
-        cre = re.compile(rf"^{h}(|_\d+)\.json$")
-
         def find(directory: str, ts: int, invalidate: bool) -> str | None:
             if not os.path.exists(directory):
                 return None
 
+            cre = re.compile(rf"^{h}(|_\d+)\.json$")
             files = {
                 int(m.group(1)[1:] or 0): os.path.join(directory, elem)
                 for elem in os.listdir(directory)

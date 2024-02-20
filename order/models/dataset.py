@@ -11,7 +11,7 @@ import enum
 from pydantic import Field, field_validator
 
 from order.types import (
-    Union, List, Dict, NonEmptyStrictStr, PositiveStrictInt, Lazy, ClassVar, GeneratorType, Any,
+    Union, List, Dict, NonEmptyStrictStr, PositiveStrictInt, Lazy, ClassVar, Any,
 )
 # from order.util import validated
 from order.models.base import Model, AdapterModel
