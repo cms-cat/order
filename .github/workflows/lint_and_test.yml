@@ -14,7 +14,9 @@ jobs:
           persist-credentials: false
 
       - name: Install dependencies ☕️
-        run: pip install .[dev]
+        run: |
+          pip install -U pip setuptools
+          pip install .[dev]
 
       - name: Lint 🔍
         run: ./tests/linting.sh
@@ -33,7 +35,9 @@ jobs:
           persist-credentials: false
 
       - name: Install dependencies ☕️
-        run: pip install .[dev]
+        run: |
+          pip install -U pip setuptools
+          pip install .[dev]
 
       - name: Typecheck 📋
         run: ./tests/typecheck.sh
@@ -52,7 +56,9 @@ jobs:
           persist-credentials: false
 
       - name: Install dependencies ☕️
-        run: pip install .[dev]
+        run: |
+          pip install -U pip setuptools
+          pip install .[dev]
 
       - name: Test 🎢
         run: ./tests/unittest.sh
@@ -91,7 +97,9 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies ☕️
-        run: pip install .[dev]
+        run: |
+          pip install -U pip setuptools
+          pip install .[dev]
 
       - name: Run coverage test 🎢
         run: ./tests/coverage.sh
