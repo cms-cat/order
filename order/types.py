@@ -35,8 +35,10 @@ from pydantic import Strict, StrictInt, StrictFloat, StrictStr, StrictBool  # no
 from pydantic.fields import FieldInfo  # noqa
 
 
-#: Strict positive integer.
+# Strict positive integer.
 PositiveStrictInt = Annotated[StrictInt, Ge(0)]
+# Strict positive float.
+PositiveStrictFloat = Annotated[StrictFloat, Ge(0)]
 
 #: Strict non-empty string.
 NonEmptyStrictStr = Annotated[StrictStr, Len(min_length=1)]

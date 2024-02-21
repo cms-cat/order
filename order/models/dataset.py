@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-__all__ = ["DatasetIndex", "Dataset", "LazyDataset", "DatasetVariation", "GenOrder"]
+__all__ = ["DatasetIndex", "Dataset", "LazyDataset", "DatasetVariation","DatasetVariationIndex", "GenOrder"]
 
 
 import enum
@@ -11,7 +11,8 @@ import enum
 from pydantic import Field, field_validator
 
 from order.types import (
-    Union, List, Dict, NonEmptyStrictStr, PositiveStrictInt, Lazy, ClassVar, Any,
+    Union, List, Dict, NonEmptyStrictStr, PositiveStrictInt,
+    PositiveStrictFloat, Lazy, ClassVar, Any,
 )
 # from order.util import validated
 from order.models.base import Model, AdapterModel
@@ -23,7 +24,13 @@ class DatasetIndex(UniqueObjectIndex):
     class_name: NonEmptyStrictStr = Field(default="Dataset", frozen=True)
     objects: Lazy[List[Union["LazyDataset", "Dataset"]]] = Field(default_factory=list, repr=False)
 
+class DatasetVariationIndex(UniqueObjectIndex):
 
+    class_name: NonEmptyStrictStr = Field(default="DatasetVariation", frozen=True)
+    # This may become Lazy if we read the dataset variations from somewhere else
+    objects: Lazy[List[Union["LazyDataset", "DatasetVariation"]]] = Field(default_factory=list, repr=False)
+
+    
 class LazyDataset(LazyUniqueObject):
 
     class_name: NonEmptyStrictStr = Field(default="Dataset", frozen=True)
@@ -65,14 +72,17 @@ class GenOrder(enum.Enum):
         return self.value
 
 
-class DatasetVariation(Model):
-
+class DatasetVariation(UniqueObject):
+    
     keys: List[NonEmptyStrictStr] = Field(frozen=True)
     gen_order: NonEmptyStrictStr = Field(default=str(GenOrder.unknown))
     n_files: Lazy[PositiveStrictInt]
     n_events: Lazy[PositiveStrictInt]
+    file_size: Lazy[PositiveStrictInt]
     lfns: Lazy[List[NonEmptyStrictStr]]
 
+    lazy_cls: ClassVar[UniqueObjectBase] = LazyDataset 
+    
     @field_validator("gen_order", mode="after")
     @classmethod
     def validate_gen_order(cls, gen_order: str) -> str:
@@ -85,7 +95,7 @@ class DatasetVariation(Model):
 class Dataset(UniqueObject):
 
     campaign: Lazy["Campaign"]
-    variations: Dict[str, DatasetVariation] = Field(frozen=True)
+    variations: DatasetVariationIndex = Field(default_factory=DatasetVariationIndex, frozen=True)
 
     lazy_cls: ClassVar[UniqueObjectBase] = LazyDataset
 
@@ -127,10 +137,17 @@ class Dataset(UniqueObject):
     def lfns(self) -> list[NonEmptyStrictStr]:
         return self.variations["nominal"].lfns
 
+    @property
+    def file_size(self) -> int:
+        return self.variations["nominal"].file_size
+    
+
 
 # trailing imports
 from order.models.campaign import Campaign
 
 # rebuild models that contained forward type declarations
 DatasetIndex.model_rebuild()
+DatasetVariation.model_rebuild()
+DatasetVariationIndex.model_rebuild()
 Dataset.model_rebuild()
