@@ -16,6 +16,7 @@ __all__ = [
     "ProcessIndex", "Process", "LazyProcess",
     "DatasetIndex", "Dataset", "LazyDataset", "DatasetVariation", "GenOrder",
     "Campaign",
+    "Uncertainty", "LazyUncertainty", "UncertaintyIndex"
 ]
 
 
@@ -37,6 +38,7 @@ from order.models.unique import (
 from order.models.process import ProcessIndex, Process, LazyProcess
 from order.models.dataset import DatasetIndex, Dataset, LazyDataset, DatasetVariation, GenOrder
 from order.models.campaign import Campaign
+from order.models.uncertainty import Uncertainty, LazyUncertainty, UncertaintyIndex
 
 # import adapters to trigger their registration
 import order.adapters.order
