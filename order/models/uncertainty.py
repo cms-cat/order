@@ -28,16 +28,18 @@ class LazyUncertainty(LazyUniqueObject):
     class_name: NonEmptyStrictStr = Field(default="Uncertainty", frozen=True)
 
     @classmethod
-    def create_lazy_dict(cls, name: str, id: int) -> dict:
+    def create_lazy_dict(cls, name: str, id: int, uncertainty_type:str, filename:str) -> dict:
+        # Get the classname checking with the class_label
+        uncertainty_class = Uncertainty.get_class(uncertainty_type)
         return {
             "name": name,
             "id": id,
-            "class_name": "Uncertainty",
+            "class_name": uncertainty_class.__name__,
             "adapter": {
                 "adapter": "order_uncertainty",
                 "key": "uncertainty",
                 "arguments": {
-                    "uncertainty_name": name,
+                    "filename": filename,
                 },
             },
         }
@@ -52,11 +54,13 @@ class UncertaintyMeta(type(UniqueObject)):
         cls = super().__new__(metacls, cls_name, bases, cls_dict)
         # Store the new type in the _classes dictionary
         if hasattr(cls, "class_label"):
+            metacls._classes[cls.class_label] = cls
+        # check base class label
+        if isinstance(bases[0], metacls):
             if hasattr(bases[0], "class_label"):
-                metacls._classes["_".join([bases[0].class_label, cls.class_label])] = cls
-            else:
-                metacls._classes[cls.class_label] = cls
-        print(metacls._classes)
+                if not cls.class_label.startswith(bases[0].class_label):
+                    raise ValueError(f"Uncertainty class label {cls.class_label} does not inherit from {bases[0].class_label}")
+        
         # Save the class in the class cache of all the base classes
         return cls
 
@@ -64,7 +68,6 @@ class UncertaintyMeta(type(UniqueObject)):
     def get_class(cls, class_label:str):
         '''This function splits the class_label using _ and look for the
         closest match in the available classes dict'''
-        breakpoint()
         toks = class_label.split("_")
         for i in range(len(toks), 0, -1):
             label = "_".join(toks[:i])
@@ -94,15 +97,20 @@ class Uncertainty(UniqueObject, metaclass=UncertaintyMeta):
     
 class ExperimentalUncertainty(Uncertainty):
     '''Model that represents an experimental uncertainty'''
-    class_label: ClassVar[str] = "exp"
+    class_label: ClassVar[str] = "syst_exp"
     pog : NonEmptyStrictStr = Field(default="", description="POG that provides the uncertainty")
     
+    pass
+
+class JESUncertainty(ExperimentalUncertainty):    
+    '''Model that represents an experimental uncertainty'''
+    class_label: ClassVar[str] = "syst_exp_JES"
     pass
 
 
 class TheoryUncertainty(Uncertainty):
     '''Model that represents an experimental uncertainty'''
-    class_label: ClassVar[str] = "theory"
+    class_label: ClassVar[str] = "syst_theory"
     generator: NonEmptyStrictStr = Field(default="", description="Generator that provides the uncertainty")
 
     pass

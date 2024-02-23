@@ -18,7 +18,7 @@ import yaml
 from order.adapters.base import Adapter, Materialized
 from order.models.dataset import LazyDataset
 from order.models.process import LazyProcess
-
+from order.models.uncertainty import LazyUncertainty
 
 class OrderAdapter(Adapter):
 
@@ -211,3 +211,36 @@ class ProcessAdapter(OrderAdapter):
                     return Materialized(process=entry)
 
         raise Exception(f"no process entry with name '{process_name}' found in {path}")
+
+
+
+class uncertaintiesAdapter(OrderAdapter):
+    name ="order_uncertainties"
+    def retrieve_data(
+            self,
+            data_location: str,
+            *,
+            directories: list[str]                    
+    ) -> Materialized:
+        # only supporting local evaluation for now
+        if not self.location_is_local(data_location):
+            raise NotImplementedError(f"non-local location {data_location} not handled by {self!r}")
+
+        # build the yaml file path.
+        # We need to find the directory by looking at the deepest existent
+        # directory of the uncertainty_type hierarchy.
+        uncertainties = []
+        basepath = os.path.join(self.remove_scheme(data_location), "uncertainties")
+        for directory in directories:
+            # loop over all file in the directory
+            for file in os.listdir(os.path.join(basepath, directory)):
+                if os.path.isfile(os.path.join(basepath, directory, file)):
+                    #load the file and loop over entities
+                    with open(os.path.join(basepath, directory, file), "r") as f:
+                        stream = yaml.load_all(f, Loader=yaml.SafeLoader)
+                        for entry in stream:
+                            uncertainties.append(LazyUncertainty.create_lazy_dict(
+                                entry["name"], entry["id"],
+                                entry["uncertainty_type"], os.path.join(directory,file)))
+        
+        return Materialized(uncertainties=uncertainties)
