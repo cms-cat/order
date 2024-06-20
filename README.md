@@ -83,9 +83,17 @@ pip install -U pip setuptools
 pip install .[dev]
 ```
 
+Setup the environment:
+```shell
+export ORDER_CLEAR_CACHE=True
+export ORDER_DATA_LOCATION='/path/to/order-data'
+export X509_USER_PROXY=your-cert-file
+```
+
 ## Testing
 
-After making changes, make sure to run test cases and linting checks.
+TBD. After making changes, make sure to run test cases and linting checks.
+Note. At this time these test are failing. Will fix them later.
 
 ```shell
 ./tests/test.sh
@@ -101,12 +109,6 @@ After making changes, make sure to run test cases and linting checks.
 - Original source hosted at [GitHub](https://github.com/cms-cat/order)
 - Report issues, questions, feature requests on [GitHub Issues](https://github.com/cms-cat/order/issues)
 
-Setup the environment:
-```shell
-export ORDER_CLEAR_CACHE=True                                          
-export ORDER_DATA_LOCATION='/path/to/order-data'
-export X509_USER_PROXY=your-cert-file
-```
 
 <!-- marker-after-development -->
 
